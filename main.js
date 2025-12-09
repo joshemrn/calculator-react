@@ -48,6 +48,32 @@ function Protected({ children }) {
   return children;
 }
 
+// ==================== THEME SYSTEM ====================
+const ThemeContext = React.createContext();
+
+function ThemeProvider({ children }) {
+  const [theme, setThemeState] = useState(() => {
+    return localStorage.getItem('calculatorTheme') || 'bold';
+  });
+
+  const setTheme = (newTheme) => {
+    localStorage.setItem('calculatorTheme', newTheme);
+    setThemeState(newTheme);
+  };
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+function useTheme() {
+  const context = React.useContext(ThemeContext);
+  if (!context) throw new Error('useTheme must be used within ThemeProvider');
+  return context;
+}
+
 function AuthLayout({ children }) {
   const { user, loading } = useAuthState();
   if (loading) return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-sky-50 flex items-center justify-center"><div>Loading...</div></div>;
@@ -56,8 +82,22 @@ function AuthLayout({ children }) {
 }
 
 function PageShell({ children }) {
+  const { theme, setTheme } = useTheme();
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-sky-50 text-slate-800 py-12 px-6">
+      <div className="fixed top-6 right-6 z-50">
+        <button
+          onClick={() => setTheme(theme === 'bold' ? 'professional' : 'bold')}
+          className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-lg border-2 border-slate-200 hover:border-indigo-400 transition-all font-semibold text-sm"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8" fill="#64748b"/>
+            <path d="M12 6v12M6 12h12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          {theme === 'bold' ? 'Professional' : 'Bold'} Design
+        </button>
+      </div>
       {children}
     </div>
   );
@@ -65,6 +105,7 @@ function PageShell({ children }) {
 
 // ==================== MARGIN CALCULATOR ====================
 function MarginCalculator() {
+  const { theme } = useTheme();
   const [cost, setCost] = useState('');
   const [margin, setMargin] = useState('');
   const [revenue, setRevenue] = useState('');
@@ -171,6 +212,105 @@ function MarginCalculator() {
     const r = parseFloat(revenue) || 0;
     return (r * exchangeRate).toFixed(2);
   }, [revenue, exchangeRate]);
+
+  if (theme === 'professional') {
+    return (
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+          <header className="mb-8 pb-6 border-b border-slate-100">
+            <Link to="/" className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-700 text-sm mb-4">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Back
+            </Link>
+            <h1 className="text-2xl font-semibold text-slate-900">Margin Calculator</h1>
+            <p className="text-sm text-slate-500 mt-1.5">Enter two values to calculate the third</p>
+          </header>
+
+          <main className="grid gap-8 lg:grid-cols-2">
+            <section className="space-y-5">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 uppercase tracking-wide mb-2">Cost (CAD)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                  <input type="number" value={cost} onChange={e => handleCostChange(e.target.value)} step="0.01" min="0" placeholder="0.00" className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition"/>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-600 uppercase tracking-wide mb-2">Margin (%)</label>
+                <div className="relative">
+                  <input type="number" value={margin} onChange={e => handleMarginChange(e.target.value)} step="0.01" min="0" max="99.99" placeholder="0.00" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition"/>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">%</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-600 uppercase tracking-wide mb-2">Revenue (CAD)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                  <input type="number" value={revenue} onChange={e => handleRevenueChange(e.target.value)} step="0.01" min="0" placeholder="0.00" className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition"/>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button onClick={reset} className="flex-1 bg-slate-900 text-white py-2.5 px-4 rounded-lg hover:bg-slate-800 transition font-medium text-sm">
+                  Reset
+                </button>
+                <button onClick={() => setShowHistory(!showHistory)} className="flex-1 border border-slate-200 bg-white py-2.5 px-4 rounded-lg hover:bg-slate-50 transition font-medium text-sm">
+                  {showHistory ? 'Hide' : 'Show'} History
+                </button>
+              </div>
+            </section>
+
+            <aside className="space-y-5">
+              <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
+                <h3 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wide">Summary</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-sm text-slate-600">Cost</span>
+                    <span className="text-lg font-semibold text-slate-900">${(parseFloat(cost) || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-t border-slate-200">
+                    <span className="text-sm text-slate-600">Margin</span>
+                    <span className="text-lg font-semibold text-slate-900">{(parseFloat(margin) || 0).toFixed(2)}%</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-t border-slate-200">
+                    <span className="text-sm text-slate-600">Revenue</span>
+                    <span className="text-lg font-semibold text-slate-900">${(parseFloat(revenue) || 0).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 rounded-xl p-5 border border-blue-100">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-semibold text-blue-900 uppercase tracking-wide">USD Value</h4>
+                  <span className="text-xs text-blue-600">1 CAD = ${exchangeRate.toFixed(4)}</span>
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-3xl font-semibold text-blue-600">${usdRevenue}</span>
+                  <span className="text-sm text-blue-500">USD</span>
+                </div>
+              </div>
+
+              {showHistory && history.length > 0 && (
+                <div className="bg-white rounded-xl p-5 border border-slate-200 max-h-64 overflow-y-auto">
+                  <h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-3">History</h4>
+                  <div className="space-y-2">
+                    {history.slice(0, 5).map((item, idx) => (
+                      <div key={idx} className="bg-slate-50 p-3 rounded-lg text-xs">
+                        <div className="font-semibold text-slate-900">Cost: ${item.cost} • Margin: {item.margin}%</div>
+                        <div className="text-slate-500 mt-0.5">Revenue: ${item.revenue}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </aside>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -286,6 +426,7 @@ function MarginCalculator() {
 
 // ==================== PRICING CALCULATOR ====================
 function PricingCalculator() {
+  const { theme } = useTheme();
   const [currency, setCurrency] = useState('CAD');
   const [cost, setCost] = useState('');
   const [marginA, setMarginA] = useState('30');
@@ -357,6 +498,142 @@ function PricingCalculator() {
       localStorage.removeItem('pricingHistory');
     }
   };
+
+  if (theme === 'professional') {
+    return (
+      <div className="w-full max-w-5xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+          <header className="mb-8 pb-6 border-b border-slate-100">
+            <Link to="/" className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-700 text-sm mb-4">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Back
+            </Link>
+            <h1 className="text-2xl font-semibold text-slate-900">Pricing Calculator</h1>
+            <p className="text-sm text-slate-500 mt-1.5">Calculate pricing with shipping & margins</p>
+          </header>
+
+          <div className="mb-6 flex gap-3">
+            <button onClick={() => setCurrency('CAD')} className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition ${currency === 'CAD' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+              CAD
+            </button>
+            <button onClick={() => setCurrency('USD')} className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition ${currency === 'USD' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+              USD
+            </button>
+          </div>
+
+          {currency === 'USD' && (
+            <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-semibold text-blue-900 uppercase tracking-wide">Exchange Rate</div>
+                  <div className="text-xs text-blue-600 mt-0.5">1 USD = {exchangeRate.toFixed(4)} CAD</div>
+                </div>
+                <div className="text-2xl font-semibold text-blue-600">${exchangeRate.toFixed(4)}</div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid gap-8 lg:grid-cols-2">
+            <section className="space-y-5">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 uppercase tracking-wide mb-2">Cost ({currency})</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                  <input type="number" value={cost} onChange={e => setCost(e.target.value)} onBlur={saveToHistory} step="0.01" min="0" placeholder="0.00" className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition"/>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-600 uppercase tracking-wide mb-2">Margin A (%)</label>
+                <div className="relative">
+                  <input type="number" value={marginA} onChange={e => setMarginA(e.target.value)} step="0.01" min="0" placeholder="30" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition"/>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">%</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-600 uppercase tracking-wide mb-2">Margin B/C/Wholesale (%)</label>
+                <div className="relative">
+                  <input type="number" value={marginBCW} onChange={e => setMarginBCW(e.target.value)} step="0.01" min="0" placeholder="40" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition"/>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">%</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button onClick={reset} className="flex-1 bg-slate-900 text-white py-2.5 px-4 rounded-lg hover:bg-slate-800 transition font-medium text-sm">
+                  Reset
+                </button>
+                <button onClick={() => setShowBreakdown(!showBreakdown)} className="flex-1 border border-slate-200 bg-white py-2.5 px-4 rounded-lg hover:bg-slate-50 transition font-medium text-sm">
+                  {showBreakdown ? 'Hide' : 'Show'} Details
+                </button>
+              </div>
+            </section>
+
+            <aside className="space-y-5">
+              {result && (
+                <>
+                  <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
+                    <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-4">Pricing Results</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-sm text-slate-600">Price A</span>
+                        <span className="text-lg font-semibold text-slate-900">${result.priceA}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-t border-slate-200">
+                        <span className="text-sm text-slate-600">Price B/C/W</span>
+                        <span className="text-lg font-semibold text-slate-900">${result.priceBCW}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {showBreakdown && (
+                    <div className="bg-white rounded-xl p-5 border border-slate-200">
+                      <h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-3">Breakdown</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Base Cost:</span>
+                          <span className="font-medium">${result.costCAD}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Shipping ({currency === 'CAD' ? '3%' : '4%'}):</span>
+                          <span className="font-medium">${result.shipping}</span>
+                        </div>
+                        <div className="flex justify-between pt-2 border-t border-slate-200">
+                          <span className="text-slate-900 font-semibold">Total Cost:</span>
+                          <span className="font-semibold">${result.totalCost}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {calculations.length > 0 && (
+                <div className="bg-white rounded-xl p-5 border border-slate-200 max-h-80 overflow-y-auto">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">History</h4>
+                    <button onClick={clearHistory} className="text-xs font-semibold text-red-600 hover:text-red-700">Clear</button>
+                  </div>
+                  <div className="space-y-2">
+                    {calculations.map((calc, idx) => (
+                      <div key={idx} className="bg-slate-50 p-3 rounded-lg text-xs">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`px-2 py-0.5 rounded text-xs font-semibold ${calc.currency === 'CAD' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>{calc.currency}</span>
+                          <span className="text-slate-500">{calc.timestamp}</span>
+                        </div>
+                        <div className="font-semibold text-slate-900">Cost: ${calc.cost.toFixed(2)}</div>
+                        <div className="text-slate-600 mt-0.5">A: ${calc.priceA.toFixed(2)} • B/C: ${calc.priceB.toFixed(2)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </aside>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -713,6 +990,69 @@ function VerifyEmailPage() {
 
 function HomePage() {
   const { user } = useAuthState();
+  const { theme } = useTheme();
+
+  if (theme === 'professional') {
+    return (
+      <PageShell>
+        <div className="max-w-4xl mx-auto">
+          <header className="mb-12 pb-8 border-b border-slate-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-semibold text-slate-900">Calculator Suite</h1>
+                <p className="text-sm text-slate-500 mt-1.5">Professional pricing and margin calculators</p>
+              </div>
+              <LogoutButton />
+            </div>
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <p className="text-sm text-slate-700">Signed in as <span className="font-semibold text-slate-900">{user?.email}</span></p>
+            </div>
+          </header>
+
+          <main>
+            <section className="grid gap-6 sm:grid-cols-2">
+              <Link to="/margin" className="group block bg-white rounded-xl p-6 hover:shadow-lg border border-slate-200 hover:border-slate-300 transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-slate-100 rounded-lg">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M8 12h8M8 16h4" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <span className="opacity-0 group-hover:opacity-100 transition text-slate-400 text-xl">→</span>
+                </div>
+                <h2 className="text-xl font-semibold text-slate-900 mb-2">Margin & Revenue</h2>
+                <p className="text-sm text-slate-600 leading-relaxed mb-3">Calculate margin, revenue and cost with live CAD→USD conversion</p>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 rounded-full text-xs font-semibold text-blue-700">
+                  CAD → USD
+                </div>
+              </Link>
+
+              <Link to="/pricing" className="group block bg-white rounded-xl p-6 hover:shadow-lg border border-slate-200 hover:border-slate-300 transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-slate-100 rounded-lg">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8" fill="#475569"/>
+                    </svg>
+                  </div>
+                  <span className="opacity-0 group-hover:opacity-100 transition text-slate-400 text-xl">→</span>
+                </div>
+                <h2 className="text-xl font-semibold text-slate-900 mb-2">Pricing Formula</h2>
+                <p className="text-sm text-slate-600 leading-relaxed mb-3">CAD & USD pricing with shipping (3%/4%) and custom margins</p>
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 rounded-full text-xs font-semibold text-green-700">
+                    USD → CAD
+                  </div>
+                  <div className="inline-flex px-2 py-1 bg-slate-100 rounded-full text-xs font-semibold text-slate-600">
+                    SHIPPING
+                  </div>
+                </div>
+              </Link>
+            </section>
+          </main>
+        </div>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell>
@@ -823,4 +1163,8 @@ function App() {
 }
 
 const root = createRoot(document.getElementById('root'));
-root.render(<App />);
+root.render(
+  <ThemeProvider>
+    <App />
+  </ThemeProvider>
+);
