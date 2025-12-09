@@ -473,9 +473,10 @@ function AIChatbot() {
   };
 
   const handleSend = () => {
-    if (!input.trim() || loading) return;
-    
-    const userMessage = { role: 'user', content: input };
+    const query = input.trim();
+    if (!query || loading) return;
+
+    const userMessage = { role: 'user', content: query };
     const placeholderId = Date.now();
     setMessages(prev => [
       ...prev,
@@ -487,22 +488,14 @@ function AIChatbot() {
 
     setTimeout(() => {
       try {
-        const answer = performCalculation(input);
-        const response = answer || "I can help with many calculations! Try:\n\n**Percentages & Math:**\n• \"30% of 130\"\n• \"What is 25 + 75?\"\n• \"150 - 30\"\n\n**Margin & Pricing:**\n• \"Margin with cost 50 and price 100\"\n• \"Price for cost 60, margin 40%\"\n• \"Convert 50% markup to margin\"\n\n**Business:**\n• \"Profit from price 100, cost 60\"\n• \"20% discount on 150\"\n• \"15% tip on 50\"\n• \"ROI: gain 1200, cost 1000\"\n\n**Currency:**\n• \"100 USD to CAD\"\n\nType 'help' for more examples!";
+        const answer = performCalculation(query);
+        const response = answer || "I can help with many calculations! Try:\
+\\n**Percentages & Math:**\n• \\"30% of 130\\"\n• \\"What is 25 + 75?\\"\n• \\"150 - 30\\"\n\\n**Margin & Pricing:**\n• \\"Margin with cost 50 and price 100\\"\n• \\"Price for cost 60, margin 40%\\"\n• \\"Convert 50% markup to margin\\"\n\\n**Business:**\n• \\"Profit from price 100, cost 60\\"\n• \\"20% discount on 150\\"\n• \\"15% tip on 50\\"\n\\n**Currency:**\n• \\"100 USD to CAD\\"\n\\nType 'help' for more examples!";
 
-        setMessages(prev => {
-          let replaced = false;
-          const updated = prev.map(msg => {
-            if (msg.tempId === placeholderId) {
-              replaced = true;
-              const { tempId, ...rest } = msg;
-              return { ...rest, content: response };
-            }
-            return msg;
-          });
-
-          return replaced ? updated : [...updated, { role: 'assistant', content: response }];
-        });
+        setMessages(prev => [
+          ...prev.filter(msg => msg.tempId !== placeholderId),
+          { role: 'assistant', content: response }
+        ]);
       } catch (error) {
         setMessages(prev => prev.filter(msg => msg.tempId !== placeholderId));
       } finally {
