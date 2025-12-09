@@ -173,52 +173,113 @@ function MarginCalculator() {
   }, [revenue, exchangeRate]);
 
   return (
-    <div className="w-full max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl p-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <Link to="/" className="text-sm text-indigo-600 hover:underline flex items-center gap-2">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#4F46E5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            Home
-          </Link>
-          <h1 className="text-2xl font-bold mt-2">Margin & Revenue Calculator</h1>
-          <p className="text-sm text-slate-600 mt-1">Enter two values and the third will be calculated. Live USD conversion included.</p>
+    <div className="w-full max-w-4xl mx-auto">
+      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-3xl shadow-2xl p-1">
+        <div className="bg-white rounded-[22px] p-8">
+          <header className="flex items-center justify-between mb-8">
+            <div>
+              <Link to="/" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-semibold text-sm mb-3">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                Back to Home
+              </Link>
+              <h1 className="text-4xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Margin Calculator</h1>
+              <p className="text-slate-600 mt-2 font-medium">Enter two values to calculate the third • Live USD conversion</p>
+            </div>
+          </header>
+
+          <main className="grid gap-8 lg:grid-cols-2">
+            <section className="space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 uppercase tracking-wide mb-2">Cost (CAD)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-400">$</span>
+                  <input type="number" value={cost} onChange={e => handleCostChange(e.target.value)} step="0.01" min="0" placeholder="0.00" className="w-full pl-10 pr-4 py-4 text-2xl font-bold border-3 border-slate-200 rounded-2xl bg-slate-50 focus:outline-none focus:ring-4 focus:ring-indigo-200 focus:border-indigo-400 transition-all"/>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 uppercase tracking-wide mb-2">Margin (%)</label>
+                <div className="relative">
+                  <input type="number" value={margin} onChange={e => handleMarginChange(e.target.value)} step="0.01" min="0" max="99.99" placeholder="0.00" className="w-full px-4 py-4 text-2xl font-bold border-3 border-slate-200 rounded-2xl bg-slate-50 focus:outline-none focus:ring-4 focus:ring-purple-200 focus:border-purple-400 transition-all"/>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-400">%</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 uppercase tracking-wide mb-2">Revenue (CAD)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-400">$</span>
+                  <input type="number" value={revenue} onChange={e => handleRevenueChange(e.target.value)} step="0.01" min="0" placeholder="0.00" className="w-full pl-10 pr-4 py-4 text-2xl font-bold border-3 border-slate-200 rounded-2xl bg-slate-50 focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all"/>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button onClick={reset} className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-4 px-6 rounded-xl hover:from-indigo-700 hover:to-purple-700 transform hover:scale-105 transition-all shadow-lg">
+                  Reset All
+                </button>
+                <button onClick={() => setShowHistory(!showHistory)} className="flex-1 bg-slate-100 text-slate-700 font-bold py-4 px-6 rounded-xl hover:bg-slate-200 transform hover:scale-105 transition-all">
+                  {showHistory ? 'Hide' : 'Show'} History
+                </button>
+              </div>
+            </section>
+
+            <aside className="space-y-6">
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border-2 border-indigo-100">
+                <h3 className="text-xl font-black text-indigo-900 mb-4 flex items-center gap-2">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" strokeWidth="2"/></svg>
+                  Summary
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-indigo-200">
+                    <span className="font-semibold text-slate-600">Cost</span>
+                    <span className="text-2xl font-black text-slate-900">${(parseFloat(cost) || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-purple-200">
+                    <span className="font-semibold text-slate-600">Margin</span>
+                    <span className="text-2xl font-black text-purple-600">{(parseFloat(margin) || 0).toFixed(2)}%</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-pink-200">
+                    <span className="font-semibold text-slate-600">Revenue</span>
+                    <span className="text-2xl font-black text-slate-900">${(parseFloat(revenue) || 0).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-bold text-green-900 uppercase tracking-wide">USD Conversion</h4>
+                  <div className="bg-green-100 px-3 py-1 rounded-full">
+                    <span className="text-xs font-bold text-green-700">1 CAD = ${exchangeRate.toFixed(4)} USD</span>
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-green-600">${usdRevenue}</span>
+                  <span className="text-lg font-semibold text-green-700">USD</span>
+                </div>
+                <p className="text-xs text-green-600 mt-2 font-medium">Live exchange rate • Updates automatically</p>
+              </div>
+
+              {showHistory && history.length > 0 && (
+                <div className="bg-slate-50 rounded-2xl p-6 border-2 border-slate-200 max-h-64 overflow-y-auto">
+                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wide mb-4">Recent Calculations</h4>
+                  <div className="space-y-2">
+                    {history.slice(0, 5).map((item, idx) => (
+                      <div key={idx} className="bg-white p-3 rounded-lg border border-slate-200 text-sm">
+                        <div className="font-bold text-slate-900">Cost: ${item.cost} • Margin: {item.margin}%</div>
+                        <div className="text-slate-600 mt-1">Revenue: ${item.revenue}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </aside>
+          </main>
+
+          <footer className="mt-8 pt-6 border-t border-slate-200">
+            <p className="text-sm text-slate-500 text-center font-medium">💡 Tip: Enter any two values to automatically calculate the third</p>
+          </footer>
         </div>
-      </header>
-
-      <main className="mt-6 grid gap-6 md:grid-cols-2">
-        <section>
-          <label className="block text-sm font-medium text-slate-700">Cost (CAD)</label>
-          <input type="number" value={cost} onChange={e => handleCostChange(e.target.value)} step="0.01" min="0" placeholder="0.00" className="mt-2 block w-full border border-slate-200 rounded-lg p-3 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-lg"/>
-
-          <label className="block mt-4 text-sm font-medium text-slate-700">Margin (%)</label>
-          <input type="number" value={margin} onChange={e => handleMarginChange(e.target.value)} step="0.01" min="0" max="99.99" placeholder="0.00" className="mt-2 block w-full border border-slate-200 rounded-lg p-3 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-lg"/>
-
-          <label className="block mt-4 text-sm font-medium text-slate-700">Revenue (CAD)</label>
-          <input type="number" value={revenue} onChange={e => handleRevenueChange(e.target.value)} step="0.01" min="0" placeholder="0.00" className="mt-2 block w-full border border-slate-200 rounded-lg p-3 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-lg"/>
-
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <button onClick={reset} className="col-span-2 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition">Reset</button>
-            <button onClick={() => setShowHistory(!showHistory)} className="col-span-2 bg-gray-200 text-slate-700 py-3 rounded-lg hover:bg-gray-300 transition">{showHistory ? 'Hide' : 'Show'} History</button>
-          </div>
-        </section>
-
-        <aside className="space-y-4">
-          <div className="p-4 rounded-lg bg-indigo-50">
-            <h3 className="text-lg font-semibold text-indigo-700">Summary</h3>
-            <p className="mt-2 text-slate-700">Cost: <span className="font-medium">{(parseFloat(cost) || 0).toFixed(2)} CAD</span></p>
-            <p className="mt-1 text-slate-700">Margin: <span className="font-medium">{(parseFloat(margin) || 0).toFixed(2)}%</span></p>
-            <p className="mt-1 text-slate-700">Revenue: <span className="font-medium">{(parseFloat(revenue) || 0).toFixed(2)} CAD</span></p>
-            <p className="mt-1 text-slate-700">Revenue (USD): <span className="font-medium">{usdRevenue} USD</span></p>
-          </div>
-
-          <div className="p-4 rounded-lg bg-white border">
-            <p className="text-sm text-slate-600">Revenue in USD: <span className="font-bold text-indigo-600">{usdRevenue}</span></p>
-            <p className="text-xs text-slate-400 mt-1">Exchange rate updated live</p>
-          </div>
-        </aside>
-      </main>
-
-      <footer className="mt-8 text-xs text-slate-500">Tip: enter two values (e.g., cost + margin) to compute the third. Values are stored locally in your browser.</footer>
+      </div>
     </div>
   );
 }
@@ -298,82 +359,146 @@ function PricingCalculator() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto bg-white rounded-2xl shadow-2xl p-8">
-      <header className="flex items-center justify-between mb-6">
-        <div>
-          <Link to="/" className="text-sm text-amber-600 hover:underline flex items-center gap-2">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#d97706" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            Home
-          </Link>
-          <h1 className="text-2xl font-bold mt-2">Pricing Formula Calculator</h1>
-          <p className="text-sm text-slate-600 mt-1">Calculate pricing with shipping & margins</p>
-        </div>
-      </header>
+    <div className="w-full max-w-6xl mx-auto">
+      <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 rounded-3xl shadow-2xl p-1">
+        <div className="bg-white rounded-[22px] p-8">
+          <header className="mb-8">
+            <Link to="/" className="inline-flex items-center gap-2 text-amber-600 hover:text-amber-700 font-semibold text-sm mb-3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Back to Home
+            </Link>
+            <h1 className="text-4xl font-black bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Pricing Calculator</h1>
+            <p className="text-slate-600 mt-2 font-medium">Calculate pricing with automatic shipping & custom margins</p>
+          </header>
 
-      <div className="mb-6 flex gap-3">
-        <button onClick={() => setCurrency('CAD')} className={`px-4 py-2 rounded-full font-semibold ${currency === 'CAD' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}`}>CAD</button>
-        <button onClick={() => setCurrency('USD')} className={`px-4 py-2 rounded-full font-semibold ${currency === 'USD' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>USD</button>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <section>
-          <label className="block text-sm font-medium text-slate-700">Cost ({currency})</label>
-          <input type="number" value={cost} onChange={e => setCost(e.target.value)} onBlur={saveToHistory} step="0.01" min="0" placeholder="0.00" className="mt-2 block w-full border border-slate-200 rounded-lg p-3 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-300 text-lg"/>
-
-          <label className="block mt-4 text-sm font-medium text-slate-700">Margin A (%)</label>
-          <input type="number" value={marginA} onChange={e => setMarginA(e.target.value)} step="0.1" min="0" max="99" className="mt-2 block w-full border border-slate-200 rounded-lg p-3 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-300 text-lg"/>
-
-          <label className="block mt-4 text-sm font-medium text-slate-700">Margin B/C/Website (%)</label>
-          <input type="number" value={marginBCW} onChange={e => setMarginBCW(e.target.value)} step="0.1" min="0" max="99" className="mt-2 block w-full border border-slate-200 rounded-lg p-3 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-300 text-lg"/>
-
-          <div className="mt-6 flex gap-3">
-            <button onClick={reset} className="flex-1 bg-amber-600 text-white py-3 rounded-lg hover:bg-amber-700 transition">Reset</button>
-            <button onClick={() => setShowBreakdown(!showBreakdown)} className="flex-1 bg-gray-200 text-slate-700 py-3 rounded-lg hover:bg-gray-300 transition">{showBreakdown ? 'Hide' : 'Show'} Breakdown</button>
+          <div className="mb-8 flex gap-4">
+            <button onClick={() => setCurrency('CAD')} className={`flex-1 px-6 py-4 rounded-2xl font-black text-lg transition-all transform hover:scale-105 ${currency === 'CAD' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+              🇨🇦 CAD
+            </button>
+            <button onClick={() => setCurrency('USD')} className={`flex-1 px-6 py-4 rounded-2xl font-black text-lg transition-all transform hover:scale-105 ${currency === 'USD' ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+              🇺🇸 USD
+            </button>
           </div>
-        </section>
 
-        <aside className="space-y-4">
-          {result && (
-            <>
-              <div className="p-4 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 border">
-                <div className="text-sm text-slate-600">Price A</div>
-                <div className="text-2xl font-bold text-slate-900 mt-1">{currency} ${result.priceA}</div>
-              </div>
-              <div className="p-4 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 border">
-                <div className="text-sm text-slate-600">Price B/C/Website</div>
-                <div className="text-2xl font-bold text-slate-900 mt-1">{currency} ${result.priceBCW}</div>
-              </div>
-              {showBreakdown && (
-                <div className="p-4 rounded-lg bg-white border">
-                  <h3 className="font-semibold mb-2">Breakdown</h3>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between"><span>Cost:</span><span>{currency} ${result.costCAD}</span></div>
-                    <div className="flex justify-between"><span>Shipping ({currency === 'CAD' ? '3%' : '4%'}):</span><span>{currency} ${result.shipping}</span></div>
-                    <div className="flex justify-between font-semibold border-t pt-1"><span>Total Cost:</span><span>{currency} ${result.totalCost}</span></div>
+          {currency === 'USD' && (
+            <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 rounded-full p-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"/></svg>
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-green-900 uppercase tracking-wide">Exchange Rate</div>
+                    <div className="text-xs text-green-700 font-medium">Updated live from market data</div>
                   </div>
                 </div>
-              )}
-            </>
-          )}
-
-          {calculations.length > 0 && (
-            <div className="p-4 rounded-lg bg-gray-50 border max-h-64 overflow-y-auto">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="text-sm font-semibold">History</h4>
-                <button onClick={clearHistory} className="text-xs text-red-600 hover:underline">Clear</button>
-              </div>
-              <div className="space-y-2">
-                {calculations.map((calc, idx) => (
-                  <div key={idx} className="text-xs p-2 bg-white rounded border">
-                    <div className="font-semibold">{calc.currency} • ${calc.cost.toFixed(2)}</div>
-                    <div className="text-slate-600">A: ${calc.priceA.toFixed(2)} • B: ${calc.priceB.toFixed(2)}</div>
-                    <div className="text-slate-500">{calc.timestamp}</div>
-                  </div>
-                ))}
+                <div className="text-right">
+                  <div className="text-2xl font-black text-green-600">${exchangeRate.toFixed(4)}</div>
+                  <div className="text-xs font-semibold text-green-700">1 USD = {exchangeRate.toFixed(4)} CAD</div>
+                </div>
               </div>
             </div>
           )}
-        </aside>
+
+          <div className="grid gap-8 lg:grid-cols-2">
+            <section className="space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 uppercase tracking-wide mb-2">Cost ({currency})</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-400">{currency === 'CAD' ? '$' : '$'}</span>
+                  <input type="number" value={cost} onChange={e => setCost(e.target.value)} onBlur={saveToHistory} step="0.01" min="0" placeholder="0.00" className="w-full pl-12 pr-4 py-4 text-2xl font-bold border-3 border-slate-200 rounded-2xl bg-slate-50 focus:outline-none focus:ring-4 focus:ring-amber-200 focus:border-amber-400 transition-all"/>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 uppercase tracking-wide mb-2">Margin A (%)</label>
+                <div className="relative">
+                  <input type="number" value={marginA} onChange={e => setMarginA(e.target.value)} step="0.1" min="0" max="99" className="w-full px-4 py-4 text-2xl font-bold border-3 border-slate-200 rounded-2xl bg-slate-50 focus:outline-none focus:ring-4 focus:ring-orange-200 focus:border-orange-400 transition-all"/>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-400">%</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 uppercase tracking-wide mb-2">Margin B/C/Website (%)</label>
+                <div className="relative">
+                  <input type="number" value={marginBCW} onChange={e => setMarginBCW(e.target.value)} step="0.1" min="0" max="99" className="w-full px-4 py-4 text-2xl font-bold border-3 border-slate-200 rounded-2xl bg-slate-50 focus:outline-none focus:ring-4 focus:ring-red-200 focus:border-red-400 transition-all"/>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-400">%</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button onClick={reset} className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold py-4 px-6 rounded-xl hover:from-amber-700 hover:to-orange-700 transform hover:scale-105 transition-all shadow-lg">
+                  Reset All
+                </button>
+                <button onClick={() => setShowBreakdown(!showBreakdown)} className="flex-1 bg-slate-100 text-slate-700 font-bold py-4 px-6 rounded-xl hover:bg-slate-200 transform hover:scale-105 transition-all">
+                  {showBreakdown ? 'Hide' : 'Show'} Breakdown
+                </button>
+              </div>
+            </section>
+
+            <aside className="space-y-6">
+              {result && (
+                <>
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border-2 border-amber-200">
+                    <div className="text-sm font-bold text-amber-900 uppercase tracking-wide mb-2">Price A</div>
+                    <div className="text-5xl font-black text-amber-600">{currency} ${result.priceA}</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border-2 border-orange-200">
+                    <div className="text-sm font-bold text-orange-900 uppercase tracking-wide mb-2">Price B/C/Website</div>
+                    <div className="text-5xl font-black text-orange-600">{currency} ${result.priceBCW}</div>
+                  </div>
+                  {showBreakdown && (
+                    <div className="bg-slate-50 rounded-2xl p-6 border-2 border-slate-200">
+                      <h3 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" strokeWidth="2"/></svg>
+                        Cost Breakdown
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center py-2 border-b border-slate-200">
+                          <span className="font-semibold text-slate-600">Product Cost</span>
+                          <span className="text-xl font-black text-slate-900">{currency} ${result.costCAD}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-slate-200">
+                          <span className="font-semibold text-slate-600">Shipping ({currency === 'CAD' ? '3%' : '4%'})</span>
+                          <span className="text-xl font-black text-slate-900">{currency} ${result.shipping}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 bg-amber-50 rounded-lg px-3 border-2 border-amber-200">
+                          <span className="font-black text-amber-900">Total Cost</span>
+                          <span className="text-2xl font-black text-amber-600">{currency} ${result.totalCost}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {calculations.length > 0 && (
+                <div className="bg-slate-50 rounded-2xl p-6 border-2 border-slate-200 max-h-80 overflow-y-auto">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Calculation History</h4>
+                    <button onClick={clearHistory} className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 px-3 py-1 rounded-full">Clear All</button>
+                  </div>
+                  <div className="space-y-2">
+                    {calculations.map((calc, idx) => (
+                      <div key={idx} className="bg-white p-4 rounded-xl border-2 border-slate-200 hover:border-amber-300 transition-all">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${calc.currency === 'CAD' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>{calc.currency}</span>
+                          <span className="text-xs text-slate-500 font-medium">{calc.timestamp}</span>
+                        </div>
+                        <div className="font-black text-slate-900">Cost: ${calc.cost.toFixed(2)}</div>
+                        <div className="text-sm text-slate-600 mt-1 font-semibold">Price A: ${calc.priceA.toFixed(2)} • B/C: ${calc.priceB.toFixed(2)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </aside>
+          </div>
+
+          <footer className="mt-8 pt-6 border-t border-slate-200">
+            <p className="text-sm text-slate-500 text-center font-medium">💡 Shipping is automatically calculated at {currency === 'CAD' ? '3%' : '4%'} based on your selected currency</p>
+          </footer>
+        </div>
       </div>
     </div>
   );
@@ -591,50 +716,77 @@ function HomePage() {
 
   return (
     <PageShell>
-      <header className="max-w-5xl mx-auto mb-12">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-              <rect width="24" height="24" rx="6" fill="#EEF2FF"/>
-              <path d="M7 8h10M7 12h6" stroke="#4F46E5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <h1 className="text-3xl font-extrabold">Calculator Collection</h1>
+      <header className="max-w-5xl mx-auto mb-16">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl shadow-lg">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <path d="M7 8h10M7 12h6M7 16h8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-5xl font-black text-slate-900 tracking-tight">Calculator Hub</h1>
+              <p className="text-lg text-slate-600 font-medium mt-1">Professional pricing & margin tools</p>
+            </div>
           </div>
           <LogoutButton />
         </div>
-        <p className="mt-4 text-slate-600 max-w-2xl">A clean collection of calculators. Click a card to open it.</p>
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200">
+          <p className="text-xl text-slate-700 font-semibold">Welcome back, <span className="text-indigo-600">{user?.email}</span></p>
+          <p className="text-slate-600 mt-2">Choose a calculator below to get started with live exchange rates</p>
+        </div>
       </header>
 
       <main className="max-w-5xl mx-auto">
-        <section className="grid gap-6 sm:grid-cols-2">
-          <Link to="/margin" className="group block bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transform hover:-translate-y-1 transition">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-3">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" fill="#EEF2FF"/>
-                    <path d="M8 12h8M8 16h4" stroke="#4F46E5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <section className="grid gap-8 sm:grid-cols-2">
+          <Link to="/margin" className="group relative block bg-white rounded-3xl p-8 hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300">
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 p-[3px]">
+              <div className="h-full w-full bg-white rounded-3xl"></div>
+            </div>
+            <div className="relative">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <path d="M8 12h8M8 16h4" stroke="#9333EA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  Margin & Revenue
-                </h2>
-                <p className="mt-2 text-slate-600">Calculate margin, revenue and cost with live USD conversion.</p>
+                </div>
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-600 text-3xl font-bold">→</div>
               </div>
-              <div className="opacity-0 group-hover:opacity-100 transition text-indigo-500">→</div>
+              <h2 className="text-3xl font-black text-slate-900 mb-3">Margin & Revenue</h2>
+              <p className="text-lg text-slate-600 font-medium leading-relaxed">Calculate margin, revenue and cost with live CAD→USD conversion rates</p>
+              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-full">
+                <span className="text-sm font-bold text-purple-700">CAD</span>
+                <span className="text-purple-400">→</span>
+                <span className="text-sm font-bold text-purple-700">USD</span>
+              </div>
             </div>
           </Link>
 
-          <Link to="/pricing" className="group block bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transform hover:-translate-y-1 transition">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-3">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5m-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11m3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5" fill="#4F46E5"/>
+          <Link to="/pricing" className="group relative block bg-white rounded-3xl p-8 hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300">
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 p-[3px]">
+              <div className="h-full w-full bg-white rounded-3xl"></div>
+            </div>
+            <div className="relative">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5m-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11m3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5" fill="#F97316"/>
                   </svg>
-                  Pricing Formula
-                </h2>
-                <p className="mt-2 text-slate-600">CAD & USD pricing: shipping 3%/4%, custom margins, live exchange rate.</p>
+                </div>
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity text-orange-600 text-3xl font-bold">→</div>
               </div>
-              <div className="opacity-0 group-hover:opacity-100 transition text-indigo-500">→</div>
+              <h2 className="text-3xl font-black text-slate-900 mb-3">Pricing Formula</h2>
+              <p className="text-lg text-slate-600 font-medium leading-relaxed">CAD & USD pricing with shipping rates (3%/4%), custom margins, and live exchange rates</p>
+              <div className="mt-4 flex items-center gap-3">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full">
+                  <span className="text-sm font-bold text-orange-700">USD</span>
+                  <span className="text-orange-400">→</span>
+                  <span className="text-sm font-bold text-orange-700">CAD</span>
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-full">
+                  <span className="text-xs font-bold text-blue-700">SHIPPING</span>
+                </div>
+              </div>
             </div>
           </Link>
         </section>
