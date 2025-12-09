@@ -197,9 +197,11 @@ function AIChatbot() {
 
     // Simple percentage calculation: "30% of 130" or "what is 30% of 130"
     // Supports: "30% of 130", "30 percent of 130", "what's 30% of 130", "calculate 30% of 130", etc.
-    if ((q.includes('%') && q.includes('of')) || (q.match(/\d+%?\s*of\s*\d+/)) || 
+    // BUT NOT if it mentions "margin", "cost", "price" - those are business calculations
+    if (((q.includes('%') && q.includes('of')) || (q.match(/\d+%?\s*of\s*\d+/)) || 
         (q.includes('percent') && q.includes('of')) ||
-        ((q.includes('what') || q.includes('calculate')) && q.includes('%') && numbers.length >= 2)) {
+        ((q.includes('what') || q.includes('calculate')) && q.includes('%') && numbers.length >= 2)) &&
+        !q.includes('margin') && !q.includes('markup') && !q.includes('cost') && !q.includes('price')) {
       if (numbers.length >= 2) {
         const percent = numbers[0];
         const amount = numbers[1];
