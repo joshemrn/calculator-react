@@ -165,7 +165,7 @@ function AIChatbot() {
         const percent = numbers[0];
         const amount = numbers[1];
         const result = (percent / 100 * amount).toFixed(2);
-        return `🔢 **Percentage Calculation**\n\n**${percent}% of ${amount} = ${result}**\n\n📊 **Formula:**\nPercentage × Amount / 100 = Result\n\n📝 **Steps:**\n1. Percentage: ${percent}%\n2. Amount: ${amount}\n3. Convert percentage to decimal: ${percent}% = ${(percent/100).toFixed(4)}\n4. Multiply: ${(percent/100).toFixed(4)} × ${amount}\n5. **Result: ${result}**`;
+        return `**${result}**`;
       }
     }
 
@@ -179,7 +179,7 @@ function AIChatbot() {
           ? (parseFloat(amount) + parseFloat(change)).toFixed(2)
           : (parseFloat(amount) - parseFloat(change)).toFixed(2);
         
-        return `📈 **Percentage ${q.includes('increase') ? 'Increase' : 'Decrease'}**\n\n**${amount} ${q.includes('increase') ? '+' : '-'} ${percent}% = ${result}**\n\n📝 **Steps:**\n1. Original amount: ${amount}\n2. Percentage: ${percent}%\n3. Calculate change: ${amount} × ${percent}% = ${change}\n4. ${q.includes('increase') ? 'Add' : 'Subtract'}: ${amount} ${q.includes('increase') ? '+' : '-'} ${change}\n5. **Result: ${result}**`;
+        return `**${result}**`;
       }
     }
 
@@ -189,32 +189,32 @@ function AIChatbot() {
         const part = numbers[0];
         const whole = numbers[1];
         const percent = (part / whole * 100).toFixed(2);
-        return `🔢 **Percentage Calculation**\n\n**${part} is ${percent}% of ${whole}**\n\n📊 **Formula:**\n(Part / Whole) × 100 = Percentage\n\n📝 **Steps:**\n1. Part: ${part}\n2. Whole: ${whole}\n3. Divide: ${part} / ${whole} = ${(part/whole).toFixed(4)}\n4. Convert to percentage: ${(part/whole).toFixed(4)} × 100\n5. **Result: ${percent}%**`;
+        return `**${percent}%**`;
       }
     }
 
     // Basic arithmetic - Addition
     if ((q.includes('+') || q.includes('plus') || q.includes('add')) && numbers.length >= 2) {
       const sum = numbers.reduce((a, b) => a + b, 0);
-      return `➕ **Addition**\n\n**${numbers.join(' + ')} = ${sum.toFixed(2)}**`;
+      return `**${sum.toFixed(2)}**`;
     }
 
     // Basic arithmetic - Subtraction
     if ((q.includes('-') || q.includes('minus') || q.includes('subtract')) && numbers.length >= 2) {
       const diff = numbers.reduce((a, b) => a - b);
-      return `➖ **Subtraction**\n\n**${numbers.join(' - ')} = ${diff.toFixed(2)}**`;
+      return `**${diff.toFixed(2)}**`;
     }
 
     // Basic arithmetic - Multiplication
     if ((q.includes('×') || q.includes('*') || q.includes('multiply') || q.includes('times')) && numbers.length >= 2) {
       const product = numbers.reduce((a, b) => a * b, 1);
-      return `✖️ **Multiplication**\n\n**${numbers.join(' × ')} = ${product.toFixed(2)}**`;
+      return `**${product.toFixed(2)}**`;
     }
 
     // Basic arithmetic - Division
     if ((q.includes('/') || q.includes('÷') || q.includes('divide') || q.includes('divided')) && numbers.length >= 2) {
       const quotient = numbers.reduce((a, b) => a / b);
-      return `➗ **Division**\n\n**${numbers.join(' ÷ ')} = ${quotient.toFixed(2)}**`;
+      return `**${quotient.toFixed(2)}**`;
     }
 
     // Profit calculation
@@ -222,8 +222,7 @@ function AIChatbot() {
       const price = numbers[0];
       const cost = numbers[1];
       const profit = price - cost;
-      const margin = ((profit / price) * 100).toFixed(2);
-      return `💰 **Profit Calculation**\n\n**Profit: $${profit.toFixed(2)}**\nMargin: ${margin}%\n\n📝 **Breakdown:**\nSelling price: $${price.toFixed(2)}\nCost: $${cost.toFixed(2)}\nProfit: $${price.toFixed(2)} - $${cost.toFixed(2)} = $${profit.toFixed(2)}`;
+      return `**$${profit.toFixed(2)}**`;
     }
 
     // Discount calculation
@@ -232,7 +231,7 @@ function AIChatbot() {
       const discount = numbers[1];
       const savings = (price * discount / 100).toFixed(2);
       const final = (price - savings).toFixed(2);
-      return `🏷️ **Discount Calculation**\n\n**Final Price: $${final}**\n\n📝 **Steps:**\n1. Original price: $${price.toFixed(2)}\n2. Discount: ${discount}%\n3. Savings: $${price.toFixed(2)} × ${discount}% = $${savings}\n4. Final price: $${price.toFixed(2)} - $${savings} = $${final}\n\n💵 **You save: $${savings}**`;
+      return `**$${final}**`;
     }
 
     // Tax calculation
@@ -241,7 +240,7 @@ function AIChatbot() {
       const taxRate = numbers[1];
       const tax = (amount * taxRate / 100).toFixed(2);
       const total = (parseFloat(amount) + parseFloat(tax)).toFixed(2);
-      return `🧾 **Tax Calculation**\n\n**Total with Tax: $${total}**\n\n📝 **Breakdown:**\n1. Amount before tax: $${amount.toFixed(2)}\n2. Tax rate: ${taxRate}%\n3. Tax amount: $${amount.toFixed(2)} × ${taxRate}% = $${tax}\n4. Total: $${amount.toFixed(2)} + $${tax} = $${total}`;
+      return `**$${total}**`;
     }
 
     // Break-even calculation
@@ -251,7 +250,7 @@ function AIChatbot() {
         const pricePerUnit = numbers.length >= 3 ? numbers[1] : numbers[0];
         const costPerUnit = numbers.length >= 3 ? numbers[2] : numbers[1];
         const breakEven = Math.ceil(fixedCosts / (pricePerUnit - costPerUnit));
-        return `⚖️ **Break-Even Analysis**\n\n**Break-even point: ${breakEven} units**\n\n📝 **Calculation:**\nFixed costs: $${fixedCosts.toFixed(2)}\nPrice per unit: $${pricePerUnit.toFixed(2)}\nCost per unit: $${costPerUnit.toFixed(2)}\nContribution margin: $${(pricePerUnit - costPerUnit).toFixed(2)}\n\nBreak-even = Fixed Costs / Contribution Margin\n= $${fixedCosts.toFixed(2)} / $${(pricePerUnit - costPerUnit).toFixed(2)}\n= ${breakEven} units`;
+        return `**${breakEven} units**`;
       }
     }
 
@@ -260,7 +259,7 @@ function AIChatbot() {
       const gain = numbers[0];
       const cost = numbers[1];
       const roi = ((gain - cost) / cost * 100).toFixed(2);
-      return `📊 **ROI Calculation**\n\n**ROI: ${roi}%**\n\n📊 **Formula:**\nROI = ((Gain - Cost) / Cost) × 100\n\n📝 **Steps:**\n1. Gain from investment: $${gain.toFixed(2)}\n2. Cost of investment: $${cost.toFixed(2)}\n3. Net profit: $${gain.toFixed(2)} - $${cost.toFixed(2)} = $${(gain - cost).toFixed(2)}\n4. ROI: ($${(gain - cost).toFixed(2)} / $${cost.toFixed(2)}) × 100 = ${roi}%`;
+      return `**${roi}%**`;
     }
 
     // Tip calculator
@@ -269,7 +268,7 @@ function AIChatbot() {
       const tipPercent = numbers[1];
       const tip = (bill * tipPercent / 100).toFixed(2);
       const total = (parseFloat(bill) + parseFloat(tip)).toFixed(2);
-      return `💵 **Tip Calculator**\n\n**Tip amount: $${tip}**\n**Total: $${total}**\n\n📝 **Breakdown:**\nBill amount: $${bill.toFixed(2)}\nTip percentage: ${tipPercent}%\nTip: $${bill.toFixed(2)} × ${tipPercent}% = $${tip}\nTotal: $${bill.toFixed(2)} + $${tip} = $${total}`;
+      return `**$${total}**`;
     }
 
     // Simple interest
@@ -279,13 +278,13 @@ function AIChatbot() {
       const time = numbers[2];
       const interest = (principal * rate * time / 100).toFixed(2);
       const total = (parseFloat(principal) + parseFloat(interest)).toFixed(2);
-      return `💰 **Simple Interest**\n\n**Interest: $${interest}**\n**Total: $${total}**\n\n📊 **Formula:**\nInterest = Principal × Rate × Time / 100\n\n📝 **Calculation:**\nPrincipal: $${principal.toFixed(2)}\nRate: ${rate}%\nTime: ${time} years\nInterest: $${principal.toFixed(2)} × ${rate}% × ${time} = $${interest}`;
+      return `**$${total}**`;
     }
 
     // Average calculation
     if ((q.includes('average') || q.includes('mean')) && numbers.length >= 2) {
       const avg = (numbers.reduce((a, b) => a + b, 0) / numbers.length).toFixed(2);
-      return `📊 **Average Calculation**\n\n**Average: ${avg}**\n\n📝 **Numbers:** ${numbers.join(', ')}\n**Sum:** ${numbers.reduce((a, b) => a + b, 0).toFixed(2)}\n**Count:** ${numbers.length}\n**Average:** ${avg}`;
+      return `**${avg}**`;
     }
 
     // Manual rate override
@@ -302,7 +301,7 @@ function AIChatbot() {
       const cad = numbers[0];
       const rate = manualRate ? (1 / manualRate) : cadToUsd;
       const usd = (cad * rate).toFixed(2);
-      return `💱 **CAD → USD Conversion**\n\n**${cad} CAD = $${usd} USD**\n\n📊 **Formula:**\nCAD × Exchange Rate = USD\n\n📝 **Steps:**\n1. Amount in CAD: ${cad}\n2. Exchange rate: 1 CAD = $${rate.toFixed(4)} USD\n3. Calculation: ${cad} × ${rate.toFixed(4)}\n4. **Result: $${usd} USD**${manualRate ? '\n\n⚙️ Using manual rate: ' + manualRate : '\n\n🌐 Using live market rate'}`;
+      return `**$${usd} USD**`;
     }
 
     // Currency conversion USD to CAD
@@ -310,7 +309,7 @@ function AIChatbot() {
       const usd = numbers[0];
       const rate = manualRate ? manualRate : usdToCad;
       const cad = (usd * rate).toFixed(2);
-      return `💱 **USD → CAD Conversion**\n\n**${usd} USD = $${cad} CAD**\n\n📊 **Formula:**\nUSD × Exchange Rate = CAD\n\n📝 **Steps:**\n1. Amount in USD: ${usd}\n2. Exchange rate: 1 USD = $${rate.toFixed(4)} CAD\n3. Calculation: ${usd} × ${rate.toFixed(4)}\n4. **Result: $${cad} CAD**${manualRate ? '\n\n⚙️ Using manual rate: ' + manualRate : '\n\n🌐 Using live market rate'}`;
+      return `**$${cad} CAD**`;
     }
 
     // Complex natural language: "cost X, margin Y%, what's price in CAD/USD"
@@ -360,7 +359,7 @@ function AIChatbot() {
           currency = 'USD';
         }
         
-        return `📊 **Price Calculation with ${margin}% Margin**\n\n**Selling Price: $${finalPrice.toFixed(2)} ${currency}**\n\n📊 **Formula:**\nPrice = Cost / (1 - Margin%/100)\n\n📝 **Steps:**\n1. Cost: $${cost.toFixed(2)}${q.includes('usd') && q.includes('cad') && q.includes('cost') ? ' USD' : ''}\n2. Desired margin: ${margin}%\n3. Convert margin to decimal: ${margin}% / 100 = ${(margin/100).toFixed(4)}\n4. Calculate divisor: 1 - ${(margin/100).toFixed(4)} = ${(1-margin/100).toFixed(4)}\n5. Divide cost by divisor: $${cost.toFixed(2)} / ${(1-margin/100).toFixed(4)}\n6. **Result: $${price.toFixed(2)}**${explanation}\n\n✅ **Verification:**\nCost: $${cost.toFixed(2)}\nSelling Price: $${price.toFixed(2)}\nProfit: $${(price - cost).toFixed(2)}\nMargin: ${((price-cost)/price*100).toFixed(2)}% ✓`;
+        return `**$${finalPrice.toFixed(2)} ${currency}**`;
       }
     }
 
@@ -371,9 +370,8 @@ function AIChatbot() {
         const cost = numbers[0];
         const price = numbers[1];
         const margin = marginFromCostAndPrice(cost, price);
-        const profit = price - cost;
         
-        return `📊 **Margin Calculation**\n\n**Margin: ${margin.toFixed(2)}%**\n\n📊 **Formula:**\nMargin % = ((Price - Cost) / Price) × 100\n\n📝 **Steps:**\n1. Selling price: $${price.toFixed(2)}\n2. Cost: $${cost.toFixed(2)}\n3. Calculate profit: $${price.toFixed(2)} - $${cost.toFixed(2)} = $${profit.toFixed(2)}\n4. Divide profit by price: $${profit.toFixed(2)} / $${price.toFixed(2)} = ${(profit/price).toFixed(4)}\n5. Convert to percentage: ${(profit/price).toFixed(4)} × 100\n6. **Result: ${margin.toFixed(2)}%**\n\n💰 **Breakdown:**\nProfit per unit: $${profit.toFixed(2)}\nFor every $100 in sales, you make $${(margin).toFixed(2)} profit`;
+        return `**${margin.toFixed(2)}%**`;
       }
     }
 
@@ -384,7 +382,7 @@ function AIChatbot() {
         const margin = numbers[1];
         const cost = costFromPriceAndMargin(price, margin);
         
-        return `📊 **Cost Calculation**\n\n**Cost: $${cost.toFixed(2)}**\n\n📊 **Formula:**\nCost = Price × (1 - Margin%)\n\n📝 **Steps:**\n1. Selling price: $${price.toFixed(2)}\n2. Desired margin: ${margin}%\n3. Convert margin to decimal: ${margin}% = ${(margin/100).toFixed(2)}\n4. Calculate multiplier: 1 - ${(margin/100).toFixed(2)} = ${(1-margin/100).toFixed(2)}\n5. Multiply price by multiplier: $${price.toFixed(2)} × ${(1-margin/100).toFixed(2)}\n6. **Result: $${cost.toFixed(2)}**\n\n✅ **Verification:**\nIf you sell at $${price.toFixed(2)} with cost $${cost.toFixed(2)}:\nProfit: $${(price - cost).toFixed(2)}\nMargin: ${marginFromCostAndPrice(cost, price).toFixed(2)}%`;
+        return `**$${cost.toFixed(2)}**`;
       }
     }
 
@@ -394,7 +392,7 @@ function AIChatbot() {
         const markup = numbers[0];
         const margin = marginFromMarkup(markup);
         
-        return `🔄 **Markup → Margin Conversion**\n\n**${markup}% markup = ${margin.toFixed(2)}% margin**\n\n📊 **Formula:**\nMargin % = (Markup% / (100 + Markup%)) × 100\n\n📝 **Steps:**\n1. Markup: ${markup}%\n2. Add 100: 100 + ${markup} = ${(100 + markup)}\n3. Divide markup by sum: ${markup} / ${(100 + markup)} = ${(markup/(100+markup)).toFixed(4)}\n4. Convert to percentage: ${(markup/(100+markup)).toFixed(4)} × 100\n5. **Result: ${margin.toFixed(2)}% margin**\n\n💡 **Example:**\nIf cost = $100 with ${markup}% markup:\nPrice = $${(100 * (1 + markup/100)).toFixed(2)}\nProfit = $${(100 * markup/100).toFixed(2)}\nMargin = ${margin.toFixed(2)}%`;
+        return `**${margin.toFixed(2)}%**`;
       }
     }
 
@@ -404,7 +402,7 @@ function AIChatbot() {
         const margin = numbers[0];
         const markup = markupFromMargin(margin);
         
-        return `🔄 **Margin → Markup Conversion**\n\n**${margin}% margin = ${markup.toFixed(2)}% markup**\n\n📊 **Formula:**\nMarkup % = (Margin% / (100 - Margin%)) × 100\n\n📝 **Steps:**\n1. Margin: ${margin}%\n2. Subtract from 100: 100 - ${margin} = ${(100 - margin)}\n3. Divide margin by result: ${margin} / ${(100 - margin)} = ${(margin/(100-margin)).toFixed(4)}\n4. Convert to percentage: ${(margin/(100-margin)).toFixed(4)} × 100\n5. **Result: ${markup.toFixed(2)}% markup**\n\n💡 **Example:**\nIf cost = $100 with ${margin}% margin:\nPrice = $${priceFromCostAndMargin(100, margin).toFixed(2)}\nProfit = $${(priceFromCostAndMargin(100, margin) - 100).toFixed(2)}\nMarkup = ${markup.toFixed(2)}%`;
+        return `**${markup.toFixed(2)}%**`;
       }
     }
 
@@ -425,7 +423,7 @@ function AIChatbot() {
         
         const price = priceFromCostAndMargin(totalCost, margin);
         
-        return `📦 **Multi-Cost Margin Calculation**\n\n**Selling Price: $${price.toFixed(2)}**\n\n📊 **Cost Breakdown:**\n${costs.map((c, i) => `${i + 1}. Cost item: $${c.toFixed(2)}`).join('\n')}\n**Total Cost: $${totalCost.toFixed(2)}**\n\n📝 **Steps:**\n1. Sum all costs: ${costs.map(c => `$${c.toFixed(2)}`).join(' + ')} = $${totalCost.toFixed(2)}\n2. Desired margin: ${margin}%\n3. Apply formula: Price = Cost / (1 - Margin%)\n4. Calculate: $${totalCost.toFixed(2)} / (1 - ${(margin/100).toFixed(2)})\n5. **Result: $${price.toFixed(2)}**\n\n✅ **Profit Analysis:**\nTotal cost: $${totalCost.toFixed(2)}\nSelling price: $${price.toFixed(2)}\nProfit: $${(price - totalCost).toFixed(2)}\nMargin: ${margin.toFixed(2)}%`;
+        return `**$${price.toFixed(2)}**`;
       }
     }
 
@@ -436,7 +434,7 @@ function AIChatbot() {
         const margin = numbers[1];
         const price = priceFromCostAndMargin(cost, margin);
         
-        return `📊 **Price Calculation**\n\n**Selling Price: $${price.toFixed(2)}**\n\n📊 **Formula:**\nPrice = Cost / (1 - Margin%)\n\n📝 **Steps:**\n1. Cost: $${cost.toFixed(2)}\n2. Desired margin: ${margin}%\n3. Convert to decimal: ${margin}% = ${(margin/100).toFixed(2)}\n4. Calculate: 1 - ${(margin/100).toFixed(2)} = ${(1-margin/100).toFixed(2)}\n5. Divide: $${cost.toFixed(2)} / ${(1-margin/100).toFixed(2)}\n6. **Result: $${price.toFixed(2)}**\n\n💰 **Breakdown:**\nProfit: $${(price - cost).toFixed(2)}\nMargin check: ${marginFromCostAndPrice(cost, price).toFixed(2)}%`;
+        return `**$${price.toFixed(2)}**`;
       }
     }
 
