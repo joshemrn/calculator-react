@@ -8,7 +8,7 @@ import {
   Navigate,
   useLocation,
   useNavigate
-} from 'https://esm.sh/react-router-dom@6.22.3';
+} from 'https://esm.sh/react-router-dom@6.22.3?deps=react@18.2.0';
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
