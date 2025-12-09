@@ -314,11 +314,12 @@ function AIChatbot() {
       return `**$${cad} CAD**`;
     }
 
-    // Margin calculation from cost and price
+    // Margin calculation from cost and price - MUST COME FIRST
     // "cost $100, selling for $145, what is the margin?" - calculate margin from two values
     // Supports many variations: "selling for", "selling at", "sold for", "sale price", "retail price", etc.
-    if ((q.includes('margin') && q.includes('cost') && (q.includes('price') || q.includes('revenue') || q.includes('selling') || q.includes('sell'))) ||
-        (q.includes('what') && q.includes('margin') && numbers.length >= 2) ||
+    if (((q.includes('margin') || q.includes('what')) && q.includes('cost') && (q.includes('selling for') || q.includes('sell for') || q.includes('selling at') || q.includes('sold for'))) ||
+        (q.includes('margin') && q.includes('cost') && (q.includes('price') || q.includes('revenue') || q.includes('selling') || q.includes('sell'))) ||
+        (q.includes('what') && q.includes('margin') && numbers.length >= 2 && !q.includes('need') && !q.includes('want')) ||
         (q.includes('margin') && (q.includes('sold for') || q.includes('selling at') || q.includes('sale price') || q.includes('retail'))) ||
         ((q.includes('cost') || q.includes('cogs')) && (q.includes('sell') || q.includes('sale') || q.includes('retail')) && q.includes('margin'))) {
       if (numbers.length >= 2) {
@@ -334,7 +335,7 @@ function AIChatbot() {
     // IMPORTANT: Questions like "if cost is 13 USD what is 3% margin?" mean "what price gives 3% margin"
     // This should NOT trigger if asking "what is the margin" (which calculates margin from cost and price)
     // Supports variations: "with X% margin", "at Y% margin", "need Z% margin", "want margin of W%", etc.
-    if ((q.includes('cost') && q.includes('margin') && !q.includes('what is') && (q.includes('price') || q.includes('selling') || q.includes('what') || q.includes('need') || q.includes('want'))) ||
+    if ((q.includes('cost') && q.includes('margin') && !q.includes('what is the') && !q.includes('selling for') && !q.includes('sell for') && (q.includes('need') || q.includes('want') || q.includes('with') || q.includes('at'))) ||
         (q.includes('if cost') && q.includes('margin')) ||
         ((q.includes('need') || q.includes('want') || q.includes('require')) && q.includes('margin') && q.includes('%')) ||
         (q.includes('with') && q.includes('margin') && q.includes('%') && (q.includes('cost') || q.includes('cogs')))) {
