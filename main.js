@@ -160,7 +160,10 @@ function AIChatbot() {
     }
 
     // Simple percentage calculation: "30% of 130" or "what is 30% of 130"
-    if ((q.includes('%') && q.includes('of')) || (q.match(/\d+%?\s*of\s*\d+/))) {
+    // Supports: "30% of 130", "30 percent of 130", "what's 30% of 130", "calculate 30% of 130", etc.
+    if ((q.includes('%') && q.includes('of')) || (q.match(/\d+%?\s*of\s*\d+/)) || 
+        (q.includes('percent') && q.includes('of')) ||
+        ((q.includes('what') || q.includes('calculate')) && q.includes('%') && numbers.length >= 2)) {
       if (numbers.length >= 2) {
         const percent = numbers[0];
         const amount = numbers[1];
@@ -170,12 +173,14 @@ function AIChatbot() {
     }
 
     // Percentage increase/decrease
-    if ((q.includes('increase') || q.includes('decrease')) && q.includes('%')) {
+    // Supports: "increase 100 by 20%", "add 20% to 100", "100 plus 20%", "decrease 200 by 15%", "reduce by 10%", etc.
+    if ((q.includes('increase') || q.includes('decrease') || q.includes('add') || q.includes('plus') || 
+         q.includes('reduce') || q.includes('subtract') || q.includes('minus') || q.includes('less')) && q.includes('%')) {
       if (numbers.length >= 2) {
         const amount = numbers[0];
         const percent = numbers[1];
         const change = (amount * percent / 100).toFixed(2);
-        const result = q.includes('increase') 
+        const result = (q.includes('increase') || q.includes('add') || q.includes('plus'))
           ? (parseFloat(amount) + parseFloat(change)).toFixed(2)
           : (parseFloat(amount) - parseFloat(change)).toFixed(2);
         
@@ -184,7 +189,9 @@ function AIChatbot() {
     }
 
     // What percentage is X of Y
-    if ((q.includes('what') || q.includes('what\'s')) && q.includes('percentage') && q.includes('of')) {
+    // Supports: "what % is 25 of 100", "25 is what percent of 100", "percentage of 25 out of 100", etc.
+    if ((q.includes('what') || q.includes('what\'s')) && (q.includes('percentage') || q.includes('percent') || q.includes('%')) && 
+        (q.includes('of') || q.includes('out of'))) {
       if (numbers.length >= 2) {
         const part = numbers[0];
         const whole = numbers[1];
@@ -218,7 +225,8 @@ function AIChatbot() {
     }
 
     // Profit calculation
-    if (q.includes('profit') && numbers.length >= 2) {
+    // Supports: "profit from 100 and 60", "100 selling 60 cost profit", "revenue 100 cost 60", etc.
+    if ((q.includes('profit') || (q.includes('revenue') && q.includes('cost'))) && numbers.length >= 2) {
       const price = numbers[0];
       const cost = numbers[1];
       const profit = price - cost;
@@ -226,7 +234,8 @@ function AIChatbot() {
     }
 
     // Discount calculation
-    if (q.includes('discount') && numbers.length >= 2) {
+    // Supports: "20% discount on 150", "150 with 20% off", "discount 150 by 20%", "20% off 150", etc.
+    if ((q.includes('discount') || q.includes('off')) && numbers.length >= 2) {
       const price = numbers[0];
       const discount = numbers[1];
       const savings = (price * discount / 100).toFixed(2);
@@ -235,7 +244,8 @@ function AIChatbot() {
     }
 
     // Tax calculation
-    if (q.includes('tax') && numbers.length >= 2) {
+    // Supports: "100 with 13% tax", "add 13% tax to 100", "tax on 100 at 13%", etc.
+    if ((q.includes('tax') || q.includes('gst') || q.includes('hst') || q.includes('vat')) && numbers.length >= 2) {
       const amount = numbers[0];
       const taxRate = numbers[1];
       const tax = (amount * taxRate / 100).toFixed(2);
@@ -263,7 +273,8 @@ function AIChatbot() {
     }
 
     // Tip calculator
-    if (q.includes('tip') && numbers.length >= 2) {
+    // Supports: "15% tip on 50", "tip 50 at 15%", "50 bill 15% tip", "gratuity 15% on 50", etc.
+    if ((q.includes('tip') || q.includes('gratuity')) && numbers.length >= 2) {
       const bill = numbers[0];
       const tipPercent = numbers[1];
       const tip = (bill * tipPercent / 100).toFixed(2);
@@ -271,18 +282,9 @@ function AIChatbot() {
       return `**$${total}**`;
     }
 
-    // Simple interest
-    if (q.includes('interest') && numbers.length >= 3) {
-      const principal = numbers[0];
-      const rate = numbers[1];
-      const time = numbers[2];
-      const interest = (principal * rate * time / 100).toFixed(2);
-      const total = (parseFloat(principal) + parseFloat(interest)).toFixed(2);
-      return `**$${total}**`;
-    }
-
     // Average calculation
-    if ((q.includes('average') || q.includes('mean')) && numbers.length >= 2) {
+    // Supports: "average of 10 20 30", "mean of 10, 20, 30", "avg 10 20 30 40", etc.
+    if ((q.includes('average') || q.includes('mean') || q.includes('avg')) && numbers.length >= 2) {
       const avg = (numbers.reduce((a, b) => a + b, 0) / numbers.length).toFixed(2);
       return `**${avg}**`;
     }
@@ -314,8 +316,11 @@ function AIChatbot() {
 
     // Margin calculation from cost and price
     // "cost $100, selling for $145, what is the margin?" - calculate margin from two values
+    // Supports many variations: "selling for", "selling at", "sold for", "sale price", "retail price", etc.
     if ((q.includes('margin') && q.includes('cost') && (q.includes('price') || q.includes('revenue') || q.includes('selling') || q.includes('sell'))) ||
-        (q.includes('what') && q.includes('margin') && numbers.length >= 2)) {
+        (q.includes('what') && q.includes('margin') && numbers.length >= 2) ||
+        (q.includes('margin') && (q.includes('sold for') || q.includes('selling at') || q.includes('sale price') || q.includes('retail'))) ||
+        ((q.includes('cost') || q.includes('cogs')) && (q.includes('sell') || q.includes('sale') || q.includes('retail')) && q.includes('margin'))) {
       if (numbers.length >= 2) {
         const cost = numbers[0];
         const price = numbers[1];
@@ -328,8 +333,11 @@ function AIChatbot() {
     // Complex natural language: "cost X, margin Y%, what's price in CAD/USD"
     // IMPORTANT: Questions like "if cost is 13 USD what is 3% margin?" mean "what price gives 3% margin"
     // This should NOT trigger if asking "what is the margin" (which calculates margin from cost and price)
-    if ((q.includes('cost') && q.includes('margin') && !q.includes('what is') && (q.includes('price') || q.includes('selling') || q.includes('what'))) ||
-        (q.includes('if cost') && q.includes('margin'))) {
+    // Supports variations: "with X% margin", "at Y% margin", "need Z% margin", "want margin of W%", etc.
+    if ((q.includes('cost') && q.includes('margin') && !q.includes('what is') && (q.includes('price') || q.includes('selling') || q.includes('what') || q.includes('need') || q.includes('want'))) ||
+        (q.includes('if cost') && q.includes('margin')) ||
+        ((q.includes('need') || q.includes('want') || q.includes('require')) && q.includes('margin') && q.includes('%')) ||
+        (q.includes('with') && q.includes('margin') && q.includes('%') && (q.includes('cost') || q.includes('cogs')))) {
       if (numbers.length >= 2) {
         // When someone asks "if cost is 13 what is 3% margin"
         // They want: what price to sell at for 3% margin with cost of 13
@@ -389,7 +397,8 @@ function AIChatbot() {
     }
 
     // Cost calculation from price and margin
-    if (q.includes('cost') && (q.includes('price') || q.includes('revenue')) && q.includes('margin')) {
+    // Supports: "price 100 with 30% margin what's cost", "retail 150, margin 40%, find cost", etc.
+    if ((q.includes('cost') || q.includes('cogs')) && (q.includes('price') || q.includes('revenue') || q.includes('retail') || q.includes('sale')) && q.includes('margin')) {
       if (numbers.length >= 2) {
         const price = numbers[0];
         const margin = numbers[1];
@@ -400,7 +409,9 @@ function AIChatbot() {
     }
 
     // Markup to Margin conversion
-    if ((q.includes('markup') && q.includes('margin')) || q.includes('markup to margin')) {
+    // Supports: "50% markup to margin", "convert 100% markup", "markup 75% as margin", etc.
+    if ((q.includes('markup') && (q.includes('margin') || q.includes('to margin') || q.includes('as margin') || q.includes('convert'))) || 
+        q.includes('markup to margin')) {
       if (numbers.length >= 1) {
         const markup = numbers[0];
         const margin = marginFromMarkup(markup);
@@ -410,7 +421,9 @@ function AIChatbot() {
     }
 
     // Margin to Markup conversion
-    if ((q.includes('margin') && q.includes('markup')) || q.includes('margin to markup')) {
+    // Supports: "30% margin to markup", "convert 40% margin", "margin 25% as markup", etc.
+    if ((q.includes('margin') && (q.includes('markup') || q.includes('to markup') || q.includes('as markup') || q.includes('convert'))) || 
+        q.includes('margin to markup')) {
       if (numbers.length >= 1) {
         const margin = numbers[0];
         const markup = markupFromMargin(margin);
@@ -420,7 +433,9 @@ function AIChatbot() {
     }
 
     // Multi-cost margin (cost + freight + duties + overhead)
-    if ((q.includes('freight') || q.includes('duties') || q.includes('overhead') || q.includes('multiple cost')) && 
+    // Supports: "cost 10 freight 2 duties 1 margin 40%", "10 + 2 + 1 with 35% margin", "total cost 13, margin 30%", etc.
+    if ((q.includes('freight') || q.includes('duties') || q.includes('overhead') || q.includes('multiple cost') || 
+         q.includes('shipping') || q.includes('handling') || q.includes('total cost') || q.includes('+')) && 
         (q.includes('margin') || q.includes('price'))) {
       if (numbers.length >= 2) {
         const costs = numbers;
@@ -441,7 +456,9 @@ function AIChatbot() {
     }
 
     // Simple price from cost and margin
-    if ((q.includes('price') || q.includes('selling')) && q.includes('cost') && q.includes('margin')) {
+    // Supports: "price for cost 60 margin 40%", "sell price 100 30%", "what to charge for 50 with 35%", etc.
+    if ((q.includes('price') || q.includes('selling') || q.includes('sell') || q.includes('charge') || q.includes('retail')) && 
+        (q.includes('cost') || q.includes('cogs')) && (q.includes('margin') || q.includes('%'))) {
       if (numbers.length >= 2) {
         const cost = numbers[0];
         const margin = numbers[1];
