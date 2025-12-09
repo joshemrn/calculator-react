@@ -78,7 +78,7 @@ function useTheme() {
 function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: '👋 Hi! I\'m your margin calculation assistant.\n\nI can help you with:\n• Cost → Price → Margin calculations\n• Markup ↔ Margin conversions\n• Multi-cost margins (freight, duties, overhead)\n• USD ↔ CAD conversions\n• Natural language questions!\n\nTry asking: "If cost is 12 USD and I want 35% margin in CAD, what\'s the selling price?"' }
+    { role: 'assistant', content: '👋 Hi! I\'m your margin calculation assistant.\n\nI can help you with:\n• Margin, markup, pricing calculations\n• Currency conversions (USD ↔ CAD)\n• Percentage & math (30% of 130)\n• Profit, discount, tax, ROI\n• Tips, interest, averages\n• And much more!\n\nJust ask naturally or type "help" for examples! 😊' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -133,6 +133,160 @@ function AIChatbot() {
   const performCalculation = (question) => {
     const q = question.toLowerCase();
     const numbers = extractNumbers(question);
+
+    // Simple greetings and chat
+    if (q.match(/^(hi|hello|hey|good morning|good afternoon|good evening)$/)) {
+      return `👋 Hey there! I'm your margin calculation assistant. How can I help you today?`;
+    }
+    
+    if (q.includes('how are you') || q.includes('how r u')) {
+      return `I'm doing great, thanks for asking! 😊 Ready to help with calculations. What would you like to calculate?`;
+    }
+    
+    if (q.includes('thank') || q.includes('thx') || q.includes('thanks')) {
+      return `You're welcome! 😊 Let me know if you need anything else!`;
+    }
+    
+    if (q.match(/^(bye|goodbye|see you|cya)$/)) {
+      return `Goodbye! 👋 Come back anytime you need help with calculations!`;
+    }
+
+    if (q.includes('who are you') || q.includes('what are you')) {
+      return `I'm your AI margin calculation assistant! 🤖 I can help you with:\n• Margin calculations\n• Markup conversions\n• Pricing formulas\n• Currency conversions\n• Percentage calculations\n• And much more!\n\nJust ask me anything!`;
+    }
+
+    if (q.includes('help') || q === '?') {
+      return `🆘 **Here's what I can do:**\n\n**Calculations:**\n• "30% of 130" - Percentage\n• "Calculate margin with cost 50 and price 100"\n• "What price for cost 60 and margin 40%?"\n• "Convert 50% markup to margin"\n• "Cost 10 + freight 2 + duties 1, margin 40%"\n\n**Currency:**\n• "Convert 100 USD to CAD"\n• "Set rate 1.40" - Override exchange rate\n\n**Math:**\n• "What is 25 + 75?"\n• "150 - 30"\n• "12 × 8" or "12 * 8"\n• "100 / 4"\n\nJust type your question naturally!`;
+    }
+
+    // Simple percentage calculation: "30% of 130" or "what is 30% of 130"
+    if ((q.includes('%') && q.includes('of')) || (q.match(/\d+%?\s*of\s*\d+/))) {
+      if (numbers.length >= 2) {
+        const percent = numbers[0];
+        const amount = numbers[1];
+        const result = (percent / 100 * amount).toFixed(2);
+        return `🔢 **Percentage Calculation**\n\n**${percent}% of ${amount} = ${result}**\n\n📊 **Formula:**\nPercentage × Amount / 100 = Result\n\n📝 **Steps:**\n1. Percentage: ${percent}%\n2. Amount: ${amount}\n3. Convert percentage to decimal: ${percent}% = ${(percent/100).toFixed(4)}\n4. Multiply: ${(percent/100).toFixed(4)} × ${amount}\n5. **Result: ${result}**`;
+      }
+    }
+
+    // Percentage increase/decrease
+    if ((q.includes('increase') || q.includes('decrease')) && q.includes('%')) {
+      if (numbers.length >= 2) {
+        const amount = numbers[0];
+        const percent = numbers[1];
+        const change = (amount * percent / 100).toFixed(2);
+        const result = q.includes('increase') 
+          ? (parseFloat(amount) + parseFloat(change)).toFixed(2)
+          : (parseFloat(amount) - parseFloat(change)).toFixed(2);
+        
+        return `📈 **Percentage ${q.includes('increase') ? 'Increase' : 'Decrease'}**\n\n**${amount} ${q.includes('increase') ? '+' : '-'} ${percent}% = ${result}**\n\n📝 **Steps:**\n1. Original amount: ${amount}\n2. Percentage: ${percent}%\n3. Calculate change: ${amount} × ${percent}% = ${change}\n4. ${q.includes('increase') ? 'Add' : 'Subtract'}: ${amount} ${q.includes('increase') ? '+' : '-'} ${change}\n5. **Result: ${result}**`;
+      }
+    }
+
+    // What percentage is X of Y
+    if ((q.includes('what') || q.includes('what\'s')) && q.includes('percentage') && q.includes('of')) {
+      if (numbers.length >= 2) {
+        const part = numbers[0];
+        const whole = numbers[1];
+        const percent = (part / whole * 100).toFixed(2);
+        return `🔢 **Percentage Calculation**\n\n**${part} is ${percent}% of ${whole}**\n\n📊 **Formula:**\n(Part / Whole) × 100 = Percentage\n\n📝 **Steps:**\n1. Part: ${part}\n2. Whole: ${whole}\n3. Divide: ${part} / ${whole} = ${(part/whole).toFixed(4)}\n4. Convert to percentage: ${(part/whole).toFixed(4)} × 100\n5. **Result: ${percent}%**`;
+      }
+    }
+
+    // Basic arithmetic - Addition
+    if ((q.includes('+') || q.includes('plus') || q.includes('add')) && numbers.length >= 2) {
+      const sum = numbers.reduce((a, b) => a + b, 0);
+      return `➕ **Addition**\n\n**${numbers.join(' + ')} = ${sum.toFixed(2)}**`;
+    }
+
+    // Basic arithmetic - Subtraction
+    if ((q.includes('-') || q.includes('minus') || q.includes('subtract')) && numbers.length >= 2) {
+      const diff = numbers.reduce((a, b) => a - b);
+      return `➖ **Subtraction**\n\n**${numbers.join(' - ')} = ${diff.toFixed(2)}**`;
+    }
+
+    // Basic arithmetic - Multiplication
+    if ((q.includes('×') || q.includes('*') || q.includes('multiply') || q.includes('times')) && numbers.length >= 2) {
+      const product = numbers.reduce((a, b) => a * b, 1);
+      return `✖️ **Multiplication**\n\n**${numbers.join(' × ')} = ${product.toFixed(2)}**`;
+    }
+
+    // Basic arithmetic - Division
+    if ((q.includes('/') || q.includes('÷') || q.includes('divide') || q.includes('divided')) && numbers.length >= 2) {
+      const quotient = numbers.reduce((a, b) => a / b);
+      return `➗ **Division**\n\n**${numbers.join(' ÷ ')} = ${quotient.toFixed(2)}**`;
+    }
+
+    // Profit calculation
+    if (q.includes('profit') && numbers.length >= 2) {
+      const price = numbers[0];
+      const cost = numbers[1];
+      const profit = price - cost;
+      const margin = ((profit / price) * 100).toFixed(2);
+      return `💰 **Profit Calculation**\n\n**Profit: $${profit.toFixed(2)}**\nMargin: ${margin}%\n\n📝 **Breakdown:**\nSelling price: $${price.toFixed(2)}\nCost: $${cost.toFixed(2)}\nProfit: $${price.toFixed(2)} - $${cost.toFixed(2)} = $${profit.toFixed(2)}`;
+    }
+
+    // Discount calculation
+    if (q.includes('discount') && numbers.length >= 2) {
+      const price = numbers[0];
+      const discount = numbers[1];
+      const savings = (price * discount / 100).toFixed(2);
+      const final = (price - savings).toFixed(2);
+      return `🏷️ **Discount Calculation**\n\n**Final Price: $${final}**\n\n📝 **Steps:**\n1. Original price: $${price.toFixed(2)}\n2. Discount: ${discount}%\n3. Savings: $${price.toFixed(2)} × ${discount}% = $${savings}\n4. Final price: $${price.toFixed(2)} - $${savings} = $${final}\n\n💵 **You save: $${savings}**`;
+    }
+
+    // Tax calculation
+    if (q.includes('tax') && numbers.length >= 2) {
+      const amount = numbers[0];
+      const taxRate = numbers[1];
+      const tax = (amount * taxRate / 100).toFixed(2);
+      const total = (parseFloat(amount) + parseFloat(tax)).toFixed(2);
+      return `🧾 **Tax Calculation**\n\n**Total with Tax: $${total}**\n\n📝 **Breakdown:**\n1. Amount before tax: $${amount.toFixed(2)}\n2. Tax rate: ${taxRate}%\n3. Tax amount: $${amount.toFixed(2)} × ${taxRate}% = $${tax}\n4. Total: $${amount.toFixed(2)} + $${tax} = $${total}`;
+    }
+
+    // Break-even calculation
+    if (q.includes('break even') || q.includes('breakeven')) {
+      if (numbers.length >= 2) {
+        const fixedCosts = numbers[0];
+        const pricePerUnit = numbers.length >= 3 ? numbers[1] : numbers[0];
+        const costPerUnit = numbers.length >= 3 ? numbers[2] : numbers[1];
+        const breakEven = Math.ceil(fixedCosts / (pricePerUnit - costPerUnit));
+        return `⚖️ **Break-Even Analysis**\n\n**Break-even point: ${breakEven} units**\n\n📝 **Calculation:**\nFixed costs: $${fixedCosts.toFixed(2)}\nPrice per unit: $${pricePerUnit.toFixed(2)}\nCost per unit: $${costPerUnit.toFixed(2)}\nContribution margin: $${(pricePerUnit - costPerUnit).toFixed(2)}\n\nBreak-even = Fixed Costs / Contribution Margin\n= $${fixedCosts.toFixed(2)} / $${(pricePerUnit - costPerUnit).toFixed(2)}\n= ${breakEven} units`;
+      }
+    }
+
+    // ROI calculation (Return on Investment)
+    if ((q.includes('roi') || q.includes('return on investment')) && numbers.length >= 2) {
+      const gain = numbers[0];
+      const cost = numbers[1];
+      const roi = ((gain - cost) / cost * 100).toFixed(2);
+      return `📊 **ROI Calculation**\n\n**ROI: ${roi}%**\n\n📊 **Formula:**\nROI = ((Gain - Cost) / Cost) × 100\n\n📝 **Steps:**\n1. Gain from investment: $${gain.toFixed(2)}\n2. Cost of investment: $${cost.toFixed(2)}\n3. Net profit: $${gain.toFixed(2)} - $${cost.toFixed(2)} = $${(gain - cost).toFixed(2)}\n4. ROI: ($${(gain - cost).toFixed(2)} / $${cost.toFixed(2)}) × 100 = ${roi}%`;
+    }
+
+    // Tip calculator
+    if (q.includes('tip') && numbers.length >= 2) {
+      const bill = numbers[0];
+      const tipPercent = numbers[1];
+      const tip = (bill * tipPercent / 100).toFixed(2);
+      const total = (parseFloat(bill) + parseFloat(tip)).toFixed(2);
+      return `💵 **Tip Calculator**\n\n**Tip amount: $${tip}**\n**Total: $${total}**\n\n📝 **Breakdown:**\nBill amount: $${bill.toFixed(2)}\nTip percentage: ${tipPercent}%\nTip: $${bill.toFixed(2)} × ${tipPercent}% = $${tip}\nTotal: $${bill.toFixed(2)} + $${tip} = $${total}`;
+    }
+
+    // Simple interest
+    if (q.includes('interest') && numbers.length >= 3) {
+      const principal = numbers[0];
+      const rate = numbers[1];
+      const time = numbers[2];
+      const interest = (principal * rate * time / 100).toFixed(2);
+      const total = (parseFloat(principal) + parseFloat(interest)).toFixed(2);
+      return `💰 **Simple Interest**\n\n**Interest: $${interest}**\n**Total: $${total}**\n\n📊 **Formula:**\nInterest = Principal × Rate × Time / 100\n\n📝 **Calculation:**\nPrincipal: $${principal.toFixed(2)}\nRate: ${rate}%\nTime: ${time} years\nInterest: $${principal.toFixed(2)} × ${rate}% × ${time} = $${interest}`;
+    }
+
+    // Average calculation
+    if ((q.includes('average') || q.includes('mean')) && numbers.length >= 2) {
+      const avg = (numbers.reduce((a, b) => a + b, 0) / numbers.length).toFixed(2);
+      return `📊 **Average Calculation**\n\n**Average: ${avg}**\n\n📝 **Numbers:** ${numbers.join(', ')}\n**Sum:** ${numbers.reduce((a, b) => a + b, 0).toFixed(2)}\n**Count:** ${numbers.length}\n**Average:** ${avg}`;
+    }
 
     // Manual rate override
     if (q.includes('set rate') && numbers.length >= 1) {
@@ -282,7 +436,7 @@ function AIChatbot() {
     
     setTimeout(() => {
       const answer = performCalculation(input);
-      const response = answer || "I can help with margin calculations! Try:\n\n• \"If cost is 12 USD and I want 35% margin in CAD, what's the selling price?\"\n• \"Calculate margin with cost 50 and price 100\"\n• \"Convert 50% markup to margin\"\n• \"Cost 10 + freight 2 + duties 1 + overhead 3, margin 40%\"\n• \"Convert 100 USD to CAD\"\n• \"Set rate 1.40\" (to manually override exchange rate)";
+      const response = answer || "I can help with many calculations! Try:\n\n**Percentages & Math:**\n• \"30% of 130\"\n• \"What is 25 + 75?\"\n• \"150 - 30\"\n• \"12 × 8\"\n\n**Margin & Pricing:**\n• \"Margin with cost 50 and price 100\"\n• \"Price for cost 60, margin 40%\"\n• \"Convert 50% markup to margin\"\n\n**Business:**\n• \"Profit from price 100, cost 60\"\n• \"20% discount on 150\"\n• \"15% tip on 50\"\n• \"ROI: gain 1200, cost 1000\"\n\n**Currency:**\n• \"100 USD to CAD\"\n\nType 'help' for more examples!";
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
       setLoading(false);
     }, 500);
