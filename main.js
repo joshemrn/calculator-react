@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'https://esm.sh/react@18.2.0';
+import React, { useCallback, useEffect, useMemo, useState } from 'https://esm.sh/react@18.2.0';
 import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
 import {
   BrowserRouter,
@@ -86,23 +86,34 @@ function AIChatbot() {
   const [cadToUsd, setCadToUsd] = useState(0.72);
   const [usdToCad, setUsdToCad] = useState(1.39);
   const [manualRate, setManualRate] = useState(null);
+  const [fetchStatus, setFetchStatus] = useState('idle'); // idle | loading | ready | error
 
-  useEffect(() => {
-    // Fetch live exchange rates with fallback
+  const fetchRates = useCallback(() => {
+    setFetchStatus('loading');
+
     fetch('https://api.exchangerate.host/latest?base=USD&symbols=CAD')
       .then(r => r.json())
       .then(d => {
         if (d.rates && d.rates.CAD) {
           setUsdToCad(d.rates.CAD);
           setCadToUsd((1 / d.rates.CAD));
+          setFetchStatus('ready');
+          return;
         }
+
+        throw new Error('CAD rate missing in response');
       })
       .catch(() => {
         // Fallback rates if API fails
         setUsdToCad(1.39);
         setCadToUsd(0.72);
+        setFetchStatus('error');
       });
   }, []);
+
+  useEffect(() => {
+    fetchRates();
+  }, [fetchRates]);
 
   const extractNumbers = (text) => {
     const numbers = text.match(/\d+\.?\d*/g);
@@ -529,12 +540,45 @@ function AIChatbot() {
             <p className="text-xs opacity-90">Ask me anything about margins</p>
           </div>
         </div>
-        <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1 rounded transition">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <span
+            className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded-full ${
+              fetchStatus === 'ready'
+                ? 'bg-emerald-100 text-emerald-900'
+                : fetchStatus === 'loading'
+                  ? 'bg-amber-100 text-amber-900'
+                  : fetchStatus === 'error'
+                    ? 'bg-rose-100 text-rose-900'
+                    : 'bg-white/20 text-white'
+            }`}
+          >
+            {fetchStatus === 'idle' && 'Idle'}
+            {fetchStatus === 'loading' && 'Fetching rates'}
+            {fetchStatus === 'ready' && 'Rates ready'}
+            {fetchStatus === 'error' && 'Using fallback'}
+          </span>
+          <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1 rounded transition">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {fetchStatus === 'error' && (
+        <div className="px-4 py-2 bg-rose-50 text-rose-900 text-xs flex items-center justify-between gap-3 border-b border-rose-100">
+          <div>
+            <p className="font-semibold">Live rates unavailable.</p>
+            <p>Using fallback: 1 USD = ${usdToCad.toFixed(2)} CAD · 1 CAD = ${cadToUsd.toFixed(2)} USD</p>
+          </div>
+          <button
+            onClick={fetchRates}
+            className="text-[11px] font-semibold bg-white border border-rose-200 rounded-lg px-3 py-1 hover:bg-rose-100 transition"
+          >
+            Retry rates
+          </button>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
         {messages.map((msg, idx) => (
