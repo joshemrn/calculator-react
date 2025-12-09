@@ -1,26 +1,52 @@
 # Calculator Suite (React)
 
-A modern calculator application built with React and Firebase authentication. Features margin/revenue and pricing calculators with live currency conversion.
+A modern calculator application built with React and Firebase authentication. Features margin/revenue and pricing calculators with live currency conversion and dual theme support.
 
-## Features
+## ✨ Features
 
-- 🔐 Firebase Authentication (Email/Password & Google Sign-in)
-- 📱 Fully responsive design with Tailwind CSS
-- 💱 Live currency conversion (CAD/USD)
-- 📊 Margin & Revenue Calculator
-- 💰 Pricing Formula Calculator with shipping calculations
-- 💾 Local storage for calculation history
-- 🎨 Clean, modern UI
+- 🔐 **Firebase Authentication** - Email/Password & Google Sign-in with email verification
+- 🎨 **Dual Theme System** - Toggle between Bold and Professional designs
+- 💾 **Persistent Preferences** - Theme choice saved in localStorage
+- 💱 **Live Currency Conversion** - Real-time CAD/USD exchange rates
+- 📊 **Margin & Revenue Calculator** - Enter 2 values, auto-calculates the third
+- 💰 **Pricing Formula Calculator** - Automatic shipping & custom margins
+- 📱 **Fully Responsive** - Works on desktop, tablet, and mobile
+- 📝 **Calculation History** - Track and review previous calculations
 
-## Tech Stack
+## 🎨 Theme Options
 
-- **React 18** (via CDN - esm.sh)
-- **React Router 6** (for client-side routing)
-- **Firebase Authentication**
-- **Tailwind CSS** (via CDN)
+### Bold Theme (Default)
+- Vibrant gradient borders (purple/pink, amber/orange)
+- Large, bold typography (3XL-5XL fonts)
+- Prominent exchange rate displays
+- Enhanced hover effects and animations
+- Eye-catching color schemes
+
+### Professional Theme
+- Clean, minimal design with subtle colors
+- Refined typography and spacing
+- Soft borders and shadows
+- Corporate-friendly aesthetic
+- Perfect for business presentations
+
+**Toggle anytime** using the button in the top-right corner. Your choice is remembered!
+
+## 🚀 Tech Stack
+
+- **React 18.2.0** (via CDN - esm.sh)
+- **React Router 6.22.3** (client-side routing)
+- **Babel Standalone** (browser JSX transpilation)
+- **Firebase Auth 9.6.1** (authentication)
+- **Tailwind CSS** (via CDN - utility-first styling)
+- **Exchange Rate API** (live currency data)
 - **No build step required!**
 
-## Local Development
+## 🌐 Live Demo
+
+**Main Branch:** https://joshemrn.github.io/calculator-react/  
+**React-2 Branch (Latest):** Switch GitHub Pages to `react-2` branch for newest features
+
+## 💻 Local Development
 
 Simply serve the files with any static server:
 
@@ -34,49 +60,92 @@ npx http-server
 # VS Code Live Server extension
 ```
 
-Then visit `http://localhost:8000/calculator-react/`
+Then visit `http://localhost:8000/` (or `http://localhost:8000/calculator-react/` if needed)
 
-## Deployment to GitHub Pages
+## 📦 Deployment to GitHub Pages
 
 1. Push this repo to GitHub
-2. Go to Settings → Pages
-3. Set source to `main` branch
+2. Go to **Settings → Pages**
+3. Set source to `react-2` branch (or `main` for stable version)
 4. Your app will be live at `https://yourusername.github.io/calculator-react/`
 
-## Project Structure
+### Branches
+- **main** - Stable production version
+- **react-2** - Latest with bold modern design + professional theme toggle
+
+## 📁 Project Structure
 
 ```
 calculator-react/
-├── index.html          # Entry point with SPA redirect script
-├── main.js            # Complete React app with all components
-├── firebase-config.js # Firebase configuration
+├── index.html          # Entry point with Babel transpiler & SPA redirect
+├── main.js            # Complete React app (1100+ lines)
+│                      # - Theme system with localStorage
+│                      # - All calculator components
+│                      # - Auth pages (Login/Signup/Verify)
+│                      # - Dual theme rendering
+├── firebase-config.js # Firebase credentials
 ├── 404.html          # GitHub Pages SPA routing support
-└── README.md         # This file
+└── README.md         # Documentation
 ```
 
-## Firebase Setup
+## 🔧 Firebase Setup
 
-The app uses Firebase for authentication. The current config connects to an existing Firebase project. To use your own:
+The app uses Firebase for authentication. To use your own Firebase project:
 
-1. Create a Firebase project at https://console.firebase.google.com
-2. Enable Authentication (Email/Password and Google)
-3. Update `firebase-config.js` with your credentials
+1. Create a project at https://console.firebase.google.com
+2. Enable **Authentication** methods:
+   - Email/Password
+   - Google Sign-in
+3. Update `firebase-config.js` with your credentials:
+   ```javascript
+   const firebaseConfig = {
+     apiKey: "your-api-key",
+     authDomain: "your-app.firebaseapp.com",
+     projectId: "your-project-id",
+     // ...
+   };
+   ```
 
-## Features Detail
+## 📊 Features Detail
 
 ### Margin & Revenue Calculator
-- Enter any 2 of: Cost, Margin %, Revenue
-- Automatically calculates the third value
-- Live USD conversion
-- Saves values to localStorage
+- **Smart Calculation** - Enter any 2 of: Cost, Margin %, Revenue → auto-calculates third
+- **Live USD Conversion** - Real-time CAD→USD exchange rates
+- **History Tracking** - Recent calculations saved to localStorage
+- **Dual Currency Display** - Shows both CAD and USD values
+- **Theme Support** - Bold gradients or professional minimal design
 
 ### Pricing Calculator
-- Support for CAD and USD
-- Automatic shipping calculation (3% CAD, 4% USD)
-- Multiple margin tiers (A, B/C/Website)
-- Calculation history with timestamps
-- Cost breakdown view
+- **Multi-Currency** - Toggle between CAD and USD pricing
+- **Automatic Shipping** - 3% for CAD, 4% for USD (industry standard)
+- **Multiple Margin Tiers** - Price A, Price B/C/Wholesale
+- **Live Exchange Rates** - USD→CAD conversion with visual indicator
+- **Calculation History** - Timestamped records with currency badges
+- **Cost Breakdown** - View shipping and total cost details
+- **Theme Variants** - Vibrant gradients or clean professional look
 
-## License
+### Theme System
+- **Persistent Choice** - Saved in localStorage, remembered on return
+- **Instant Toggle** - Switch themes without page reload
+- **Consistent Experience** - All pages (Home, Margin, Pricing) adapt
+- **No Performance Hit** - Conditional rendering, no CSS switching
+
+## 🎯 Usage Tips
+
+1. **First Visit** - Sign up with email or Google account
+2. **Email Verification** - Check your inbox and verify email
+3. **Choose Theme** - Click top-right button to switch Bold ↔ Professional
+4. **Calculators** - Access from home page cards
+5. **History** - Click "Show History" to review past calculations
+6. **Exchange Rates** - Updates automatically from live API
+
+## 🔒 Security
+
+- Firebase handles all authentication securely
+- Email verification required before calculator access
+- Protected routes ensure only authenticated users can access calculators
+- No sensitive data stored in localStorage (only preferences & history)
+
+## 📝 License
 
 MIT
