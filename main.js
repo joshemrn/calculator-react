@@ -312,9 +312,23 @@ function AIChatbot() {
       return `**$${cad} CAD**`;
     }
 
+    // Margin calculation from cost and price
+    // "cost $100, selling for $145, what is the margin?" - calculate margin from two values
+    if ((q.includes('margin') && q.includes('cost') && (q.includes('price') || q.includes('revenue') || q.includes('selling') || q.includes('sell'))) ||
+        (q.includes('what') && q.includes('margin') && numbers.length >= 2)) {
+      if (numbers.length >= 2) {
+        const cost = numbers[0];
+        const price = numbers[1];
+        const margin = marginFromCostAndPrice(cost, price);
+        
+        return `**${margin.toFixed(2)}%**`;
+      }
+    }
+
     // Complex natural language: "cost X, margin Y%, what's price in CAD/USD"
     // IMPORTANT: Questions like "if cost is 13 USD what is 3% margin?" mean "what price gives 3% margin"
-    if ((q.includes('cost') && q.includes('margin') && (q.includes('price') || q.includes('selling') || q.includes('what'))) ||
+    // This should NOT trigger if asking "what is the margin" (which calculates margin from cost and price)
+    if ((q.includes('cost') && q.includes('margin') && !q.includes('what is') && (q.includes('price') || q.includes('selling') || q.includes('what'))) ||
         (q.includes('if cost') && q.includes('margin'))) {
       if (numbers.length >= 2) {
         // When someone asks "if cost is 13 what is 3% margin"
@@ -322,6 +336,17 @@ function AIChatbot() {
         // First number is usually cost, second is margin %
         let cost = numbers[0];
         let margin = numbers[1];
+        
+        // Smart detection: if question asks "what is the margin" it's asking to CALCULATE margin
+        // Otherwise it's asking to calculate price WITH a margin
+        
+        // If second number is much larger than first AND contains words like "selling/price"
+        // Then they're giving cost and price, asking for margin
+        if ((q.includes('selling') || q.includes('sell for')) && numbers[1] > numbers[0]) {
+          // This is actually "cost X, selling for Y, what margin?"
+          // This case is handled by the margin calculation above
+          return null;
+        }
         
         // Smart detection: if second number is very small (< 1) it might be a decimal margin
         // if first number is small (< 100) and second is larger, they might be in order
@@ -360,18 +385,6 @@ function AIChatbot() {
         }
         
         return `**Selling Price: $${finalPrice.toFixed(2)} ${currency}**\n\n✅ **Verification:**\nCost: $${cost.toFixed(2)}\nSelling Price: $${finalPrice.toFixed(2)}\nProfit: $${(finalPrice - cost).toFixed(2)}\nMargin: ${margin.toFixed(2)}% ✓`;
-      }
-    }
-
-    // Margin calculation from cost and price
-    if ((q.includes('margin') && q.includes('cost') && (q.includes('price') || q.includes('revenue') || q.includes('selling'))) ||
-        (q.includes('what') && q.includes('margin'))) {
-      if (numbers.length >= 2) {
-        const cost = numbers[0];
-        const price = numbers[1];
-        const margin = marginFromCostAndPrice(cost, price);
-        
-        return `**${margin.toFixed(2)}%**`;
       }
     }
 
