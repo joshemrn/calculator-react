@@ -78,19 +78,131 @@ function useTheme() {
 function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hi! I can help answer questions about margins, pricing, and revenue calculations. Ask me anything!' }
+    { role: 'assistant', content: 'Hi! I can answer questions AND perform calculations for you! Try:\n• "Calculate margin with cost $50 and revenue $100"\n• "What price for $60 cost and 40% margin?"\n• "Convert 100 CAD to USD"\n• "Calculate revenue with $80 cost and 35% margin"\n• Or ask me anything about margins!' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const { theme } = useTheme();
+  const [cadToUsd, setCadToUsd] = useState(0.72);
+  const [usdToCad, setUsdToCad] = useState(1.39);
+
+  useEffect(() => {
+    // Fetch live exchange rates
+    fetch('https://api.exchangerate-api.com/v4/latest/CAD')
+      .then(r => r.json())
+      .then(d => setCadToUsd(d.rates.USD))
+      .catch(() => {});
+    
+    fetch('https://api.exchangerate-api.com/v4/latest/USD')
+      .then(r => r.json())
+      .then(d => setUsdToCad(d.rates.CAD))
+      .catch(() => {});
+  }, []);
+
+  // Calculation functions
+  const calculateMargin = (cost, revenue) => {
+    return ((revenue - cost) / revenue * 100).toFixed(2);
+  };
+
+  const calculateRevenue = (cost, margin) => {
+    return (cost / (1 - margin / 100)).toFixed(2);
+  };
+
+  const calculateCost = (revenue, margin) => {
+    return (revenue * (1 - margin / 100)).toFixed(2);
+  };
+
+  const calculatePrice = (cost, margin, shipping = 0) => {
+    const totalCost = parseFloat(cost) + (parseFloat(cost) * shipping / 100);
+    return (totalCost / (1 - margin / 100)).toFixed(2);
+  };
+
+  const extractNumbers = (text) => {
+    const numbers = text.match(/\d+\.?\d*/g);
+    return numbers ? numbers.map(n => parseFloat(n)) : [];
+  };
+
+  const performCalculation = (question) => {
+    const q = question.toLowerCase();
+    const numbers = extractNumbers(question);
+
+    // Currency conversion CAD to USD
+    if ((q.includes('convert') || q.includes('to usd')) && q.includes('cad') && numbers.length >= 1) {
+      const cad = numbers[0];
+      const usd = (cad * cadToUsd).toFixed(2);
+      return `💱 **Currency Conversion**\n\n${cad} CAD = **$${usd} USD**\n\nExchange Rate: 1 CAD = $${cadToUsd.toFixed(4)} USD\nCalculation: ${cad} × ${cadToUsd.toFixed(4)} = $${usd}`;
+    }
+
+    // Currency conversion USD to CAD
+    if ((q.includes('convert') || q.includes('to cad')) && q.includes('usd') && numbers.length >= 1) {
+      const usd = numbers[0];
+      const cad = (usd * usdToCad).toFixed(2);
+      return `💱 **Currency Conversion**\n\n${usd} USD = **$${cad} CAD**\n\nExchange Rate: 1 USD = $${usdToCad.toFixed(4)} CAD\nCalculation: ${usd} × ${usdToCad.toFixed(4)} = $${cad}`;
+    }
+
+    // Margin calculation: cost and revenue given
+    if ((q.includes('margin') || q.includes('calculate margin')) && q.includes('cost') && q.includes('revenue')) {
+      if (numbers.length >= 2) {
+        const cost = numbers[0];
+        const revenue = numbers[1];
+        const margin = calculateMargin(cost, revenue);
+        return `📊 **Margin Calculation**\n\nCost: $${cost.toFixed(2)}\nRevenue: $${revenue.toFixed(2)}\n**Margin: ${margin}%**\n\nFormula: ((Revenue - Cost) / Revenue) × 100\n= (($${revenue.toFixed(2)} - $${cost.toFixed(2)}) / $${revenue.toFixed(2)}) × 100 = ${margin}%`;
+      }
+    }
+
+    // Revenue calculation: cost and margin given
+    if ((q.includes('revenue') || q.includes('price')) && q.includes('cost') && (q.includes('margin') || q.includes('%'))) {
+      if (numbers.length >= 2) {
+        const cost = numbers[0];
+        const margin = numbers[1];
+        const revenue = calculateRevenue(cost, margin);
+        return `📊 **Revenue Calculation**\n\nCost: $${cost.toFixed(2)}\nMargin: ${margin}%\n**Revenue: $${revenue}**\n\nFormula: Cost / (1 - Margin%)\n= $${cost.toFixed(2)} / (1 - ${margin}%) = $${revenue}`;
+      }
+    }
+
+    // Cost calculation: revenue and margin given
+    if (q.includes('cost') && q.includes('revenue') && (q.includes('margin') || q.includes('%'))) {
+      if (numbers.length >= 2) {
+        const revenue = numbers[0];
+        const margin = numbers[1];
+        const cost = calculateCost(revenue, margin);
+        return `📊 **Cost Calculation**\n\nRevenue: $${revenue.toFixed(2)}\nMargin: ${margin}%\n**Cost: $${cost}**\n\nFormula: Revenue × (1 - Margin%)\n= $${revenue.toFixed(2)} × (1 - ${margin}%) = $${cost}`;
+      }
+    }
+
+    // Pricing with shipping
+    if (q.includes('price') && (q.includes('shipping') || q.includes('cad') || q.includes('usd'))) {
+      if (numbers.length >= 2) {
+        const cost = numbers[0];
+        const margin = numbers[1];
+        const shipping = q.includes('usd') ? 4 : 3;
+        const price = calculatePrice(cost, margin, shipping);
+        const shippingCost = (cost * shipping / 100).toFixed(2);
+        const totalCost = (parseFloat(cost) + parseFloat(shippingCost)).toFixed(2);
+        return `📊 **Pricing Calculation** (${q.includes('usd') ? 'USD' : 'CAD'})\n\nBase Cost: $${cost.toFixed(2)}\nShipping (${shipping}%): $${shippingCost}\nTotal Cost: $${totalCost}\nMargin: ${margin}%\n**Final Price: $${price}**\n\nFormula: (Cost + Shipping) / (1 - Margin%)`;
+      }
+    }
+
+    // Simple price calculation without shipping
+    if (q.includes('what price') || q.includes('calculate price')) {
+      if (numbers.length >= 2) {
+        const cost = numbers[0];
+        const margin = numbers[1];
+        const price = calculateRevenue(cost, margin);
+        return `📊 **Price Calculation**\n\nCost: $${cost.toFixed(2)}\nMargin: ${margin}%\n**Price: $${price}**\n\nFormula: Cost / (1 - Margin%)\n= $${cost.toFixed(2)} / (1 - ${margin}%) = $${price}`;
+      }
+    }
+
+    return null;
+  };
 
   const knowledgeBase = {
     'what is margin': 'Margin is the difference between the cost of a product and its selling price, expressed as a percentage. Formula: Margin % = ((Revenue - Cost) / Revenue) × 100',
-    'how to calculate margin': 'To calculate margin: 1) Subtract cost from revenue, 2) Divide by revenue, 3) Multiply by 100. Example: If revenue is $100 and cost is $60, margin = (($100-$60)/$100) × 100 = 40%',
+    'how to calculate margin': 'To calculate margin: 1) Subtract cost from revenue, 2) Divide by revenue, 3) Multiply by 100. Example: If revenue is $100 and cost is $60, margin = (($100-$60)/$100) × 100 = 40%\n\nOr just ask me! Try: "Calculate margin with cost 60 and revenue 100"',
     'margin vs markup': 'Margin is based on selling price, markup is based on cost. Margin % = ((Price - Cost) / Price) × 100. Markup % = ((Price - Cost) / Cost) × 100. A 50% margin equals a 100% markup.',
     'what is revenue': 'Revenue is the total income from sales before any costs are deducted. It\'s also called the selling price or sale price.',
-    'how to price': 'To calculate price from cost and margin: Price = Cost / (1 - Margin%). Example: $60 cost with 40% margin = $60 / (1 - 0.40) = $100',
-    'shipping calculation': 'In the Pricing Calculator, shipping is automatically added at 3% for CAD and 4% for USD. Total cost = Base cost + Shipping before applying margin.',
+    'how to price': 'To calculate price from cost and margin: Price = Cost / (1 - Margin%). Example: $60 cost with 40% margin = $60 / (1 - 0.40) = $100\n\nOr ask me to calculate! Try: "What price for cost 60 and margin 40%"',
+    'shipping calculation': 'In the Pricing Calculator, shipping is automatically added at 3% for CAD and 4% for USD. Total cost = Base cost + Shipping before applying margin.\n\nTry: "Calculate price with cost 100, margin 30%, USD shipping"',
     'exchange rate': 'The calculators use live exchange rates from exchangerate-api.com. CAD to USD is around 0.72-0.75, meaning 1 CAD ≈ $0.72-0.75 USD.',
     'difference between calculators': 'Margin Calculator: For calculating margin/revenue/cost (enter any 2, get the 3rd). Pricing Calculator: For calculating final prices with shipping and multiple margin tiers (A, B/C/Wholesale).',
     'margin tiers': 'Price A uses one margin percentage, Price B/C/Wholesale uses a higher margin for bulk/wholesale pricing. Both are calculated from total cost (base + shipping).',
@@ -105,18 +217,23 @@ function AIChatbot() {
   const findAnswer = (question) => {
     const q = question.toLowerCase();
     
+    // Try calculation first
+    const calcResult = performCalculation(question);
+    if (calcResult) return calcResult;
+    
+    // Then try knowledge base
     for (const [key, answer] of Object.entries(knowledgeBase)) {
       if (q.includes(key)) return answer;
     }
     
-    if (q.includes('margin')) return 'Margin is the profit percentage based on selling price. Use our Margin Calculator to enter any 2 values (cost, margin %, revenue) and it will calculate the third. Need something specific?';
-    if (q.includes('price') || q.includes('pricing')) return 'Use the Pricing Calculator for price calculations with automatic shipping (3% CAD / 4% USD) and custom margin tiers. Enter your cost and margins to get final prices.';
-    if (q.includes('revenue') || q.includes('sales')) return 'Revenue is your selling price or total sales amount. In the calculator, enter cost and margin % to calculate revenue, or enter revenue and cost to find margin %.';
-    if (q.includes('cost')) return 'Cost is your base expense before markup/margin. In Pricing Calculator, shipping is added automatically (3-4%) to get total cost before applying margins.';
-    if (q.includes('calculator') || q.includes('tool')) return 'We have 2 calculators: Margin & Revenue (for calculating any of: cost, margin %, revenue) and Pricing Formula (for final prices with shipping and margin tiers). Both support CAD/USD.';
+    if (q.includes('margin')) return 'Margin is the profit percentage based on selling price. I can calculate it for you!\n\nTry: "Calculate margin with cost 50 and revenue 100"';
+    if (q.includes('price') || q.includes('pricing')) return 'I can calculate prices for you!\n\nTry:\n• "What price for cost 60 and margin 40?"\n• "Calculate price with cost 100, margin 35%, CAD shipping"';
+    if (q.includes('revenue') || q.includes('sales')) return 'I can calculate revenue!\n\nTry: "Calculate revenue with cost 80 and margin 30%"';
+    if (q.includes('cost')) return 'I can calculate cost!\n\nTry: "Calculate cost with revenue 150 and margin 40%"';
+    if (q.includes('calculator') || q.includes('tool')) return 'We have 2 calculators: Margin & Revenue (for calculating any of: cost, margin %, revenue) and Pricing Formula (for final prices with shipping and margin tiers). Both support CAD/USD.\n\nBut I can also calculate for you right here in chat!';
     if (q.includes('cad') || q.includes('usd') || q.includes('currency')) return 'Both calculators support CAD and USD with live exchange rates. The Margin Calculator shows CAD→USD conversion, Pricing Calculator lets you choose currency for base calculations.';
     
-    return 'I can help with margin calculations, pricing formulas, revenue, costs, exchange rates, and how to use the calculators. Try asking about: "what is margin", "how to calculate margin", "margin vs markup", "pricing calculator", or "exchange rates".';
+    return 'I can help with calculations and answer questions!\n\n**Calculations I can do:**\n• Margin (give cost & revenue)\n• Revenue (give cost & margin%)\n• Cost (give revenue & margin%)\n• Price with shipping (specify CAD/USD)\n\n**Questions I can answer:**\n• What is margin?\n• Margin vs markup\n• How to price products\n• Shipping calculations';
   };
 
   const handleSend = () => {
