@@ -87,6 +87,7 @@ function AIChatbot() {
   const [usdToCad, setUsdToCad] = useState(1.39);
   const [manualRate, setManualRate] = useState(null);
   const [fetchStatus, setFetchStatus] = useState('idle'); // idle | loading | ready | error
+  const [hadFetchError, setHadFetchError] = useState(false);
 
   const fetchRates = useCallback(() => {
     setFetchStatus('loading');
@@ -98,6 +99,7 @@ function AIChatbot() {
           setUsdToCad(d.rates.CAD);
           setCadToUsd((1 / d.rates.CAD));
           setFetchStatus('ready');
+          setHadFetchError(false);
           return;
         }
 
@@ -108,6 +110,7 @@ function AIChatbot() {
         setUsdToCad(1.39);
         setCadToUsd(0.72);
         setFetchStatus('error');
+        setHadFetchError(true);
       });
   }, []);
 
@@ -524,6 +527,12 @@ function AIChatbot() {
   }
 
   const isPro = theme === 'professional';
+  const rateStatusLabel = useMemo(() => {
+    if (fetchStatus === 'loading') return hadFetchError ? 'Retrying rates' : 'Fetching rates';
+    if (fetchStatus === 'ready') return 'Rates ready';
+    if (fetchStatus === 'error') return 'Using fallback';
+    return 'Idle';
+  }, [fetchStatus, hadFetchError]);
 
   return (
     <div className={`fixed bottom-6 right-6 z-50 w-96 ${isPro ? 'bg-white border border-slate-200 shadow-xl' : 'bg-white shadow-2xl'} rounded-2xl flex flex-col max-h-[600px]`}>
@@ -552,10 +561,7 @@ function AIChatbot() {
                     : 'bg-white/20 text-white'
             }`}
           >
-            {fetchStatus === 'idle' && 'Idle'}
-            {fetchStatus === 'loading' && 'Fetching rates'}
-            {fetchStatus === 'ready' && 'Rates ready'}
-            {fetchStatus === 'error' && 'Using fallback'}
+            {rateStatusLabel}
           </span>
           <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1 rounded transition">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -565,7 +571,7 @@ function AIChatbot() {
         </div>
       </div>
 
-      {fetchStatus === 'error' && (
+      {hadFetchError && (
         <div className="px-4 py-2 bg-rose-50 text-rose-900 text-xs flex items-center justify-between gap-3 border-b border-rose-100">
           <div>
             <p className="font-semibold">Live rates unavailable.</p>
@@ -573,9 +579,10 @@ function AIChatbot() {
           </div>
           <button
             onClick={fetchRates}
-            className="text-[11px] font-semibold bg-white border border-rose-200 rounded-lg px-3 py-1 hover:bg-rose-100 transition"
+            disabled={fetchStatus === 'loading'}
+            className="text-[11px] font-semibold bg-white border border-rose-200 rounded-lg px-3 py-1 hover:bg-rose-100 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Retry rates
+            {fetchStatus === 'loading' ? 'Retrying…' : 'Retry rates'}
           </button>
         </div>
       )}
