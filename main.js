@@ -314,11 +314,28 @@ function AIChatbot() {
     }
 
     // Complex natural language: "cost X, margin Y%, what's price in CAD/USD"
-    if ((q.includes('cost') && q.includes('margin') && (q.includes('price') || q.includes('selling'))) ||
-        (q.includes('if cost') && q.includes('want') && q.includes('margin'))) {
+    // IMPORTANT: Questions like "if cost is 13 USD what is 3% margin?" mean "what price gives 3% margin"
+    if ((q.includes('cost') && q.includes('margin') && (q.includes('price') || q.includes('selling') || q.includes('what'))) ||
+        (q.includes('if cost') && q.includes('margin'))) {
       if (numbers.length >= 2) {
-        const cost = numbers[0];
-        const margin = numbers[1];
+        // When someone asks "if cost is 13 what is 3% margin"
+        // They want: what price to sell at for 3% margin with cost of 13
+        // First number is usually cost, second is margin %
+        let cost = numbers[0];
+        let margin = numbers[1];
+        
+        // Smart detection: if second number is very small (< 1) it might be a decimal margin
+        // if first number is small (< 100) and second is larger, they might be in order
+        // Pattern: "cost X" usually comes before "margin Y%"
+        const costIndex = q.indexOf('cost');
+        const marginIndex = q.indexOf('margin');
+        
+        // If margin appears first in the sentence, swap them
+        if (marginIndex > 0 && marginIndex < costIndex) {
+          [cost, margin] = [margin, cost];
+        }
+        
+        // Calculate price from cost and margin
         const price = priceFromCostAndMargin(cost, margin);
         
         let finalPrice = price;
@@ -343,7 +360,7 @@ function AIChatbot() {
           currency = 'USD';
         }
         
-        return `📊 **Price Calculation with ${margin}% Margin**\n\n**Selling Price: $${finalPrice.toFixed(2)} ${currency}**\n\n📊 **Formula:**\nPrice = Cost / (1 - Margin%)\n\n📝 **Steps:**\n1. Cost: $${cost.toFixed(2)}${q.includes('usd') && q.includes('cad') && q.includes('cost') ? ' USD' : ''}\n2. Desired margin: ${margin}%\n3. Convert margin to decimal: ${margin}% = ${(margin/100).toFixed(2)}\n4. Calculate divisor: 1 - ${(margin/100).toFixed(2)} = ${(1-margin/100).toFixed(2)}\n5. Divide cost by divisor: ${cost.toFixed(2)} / ${(1-margin/100).toFixed(2)}\n6. **Result: $${price.toFixed(2)}**${explanation}\n\n✅ **Verification:**\nProfit: $${(price - cost).toFixed(2)}\nMargin: ${((price-cost)/price*100).toFixed(2)}%`;
+        return `📊 **Price Calculation with ${margin}% Margin**\n\n**Selling Price: $${finalPrice.toFixed(2)} ${currency}**\n\n📊 **Formula:**\nPrice = Cost / (1 - Margin%/100)\n\n📝 **Steps:**\n1. Cost: $${cost.toFixed(2)}${q.includes('usd') && q.includes('cad') && q.includes('cost') ? ' USD' : ''}\n2. Desired margin: ${margin}%\n3. Convert margin to decimal: ${margin}% / 100 = ${(margin/100).toFixed(4)}\n4. Calculate divisor: 1 - ${(margin/100).toFixed(4)} = ${(1-margin/100).toFixed(4)}\n5. Divide cost by divisor: $${cost.toFixed(2)} / ${(1-margin/100).toFixed(4)}\n6. **Result: $${price.toFixed(2)}**${explanation}\n\n✅ **Verification:**\nCost: $${cost.toFixed(2)}\nSelling Price: $${price.toFixed(2)}\nProfit: $${(price - cost).toFixed(2)}\nMargin: ${((price-cost)/price*100).toFixed(2)}% ✓`;
       }
     }
 
