@@ -76,16 +76,52 @@ function useTheme() {
 
 // ==================== AI CHATBOT ====================
 function AIChatbot() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
+  const defaultMessages = useMemo(() => ([
     { role: 'assistant', content: '👋 Hi! I\'m your margin calculation assistant.\n\nI can help you with:\n• Margin, markup, pricing calculations\n• Currency conversions (USD ↔ CAD)\n• Percentage & math (30% of 130)\n• Profit, discount, tax, ROI\n• Tips, interest, averages\n• And much more!\n\nJust ask naturally or type "help" for examples! 😊' }
-  ]);
+  ]), []);
+
+  const [isOpen, setIsOpen] = useState(() => {
+    const saved = localStorage.getItem('aiChatIsOpen');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('aiChatMessages');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) && parsed.length ? parsed.slice(-50) : defaultMessages;
+      } catch (_) {
+        return defaultMessages;
+      }
+    }
+
+    return defaultMessages;
+  });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const { theme } = useTheme();
   const [cadToUsd, setCadToUsd] = useState(0.72);
   const [usdToCad, setUsdToCad] = useState(1.39);
   const [manualRate, setManualRate] = useState(null);
+
+  const appendMessage = (newMessage) => {
+    setMessages(prev => [...prev, newMessage].slice(-50));
+  };
+
+  useEffect(() => {
+    localStorage.setItem('aiChatMessages', JSON.stringify(messages.slice(-50)));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem('aiChatIsOpen', JSON.stringify(isOpen));
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!sessionStorage.getItem('aiChatWidgetOpened')) {
+      sessionStorage.setItem('aiChatWidgetOpened', 'true');
+      setIsOpen(true);
+    }
+  }, []);
 
   useEffect(() => {
     // Fetch live exchange rates with fallback
@@ -474,16 +510,16 @@ function AIChatbot() {
 
   const handleSend = () => {
     if (!input.trim() || loading) return;
-    
+
     const userMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
+    appendMessage(userMessage);
     setInput('');
     setLoading(true);
-    
+
     setTimeout(() => {
       const answer = performCalculation(input);
       const response = answer || "I can help with many calculations! Try:\n\n**Percentages & Math:**\n• \"30% of 130\"\n• \"What is 25 + 75?\"\n• \"150 - 30\"\n• \"12 × 8\"\n\n**Margin & Pricing:**\n• \"Margin with cost 50 and price 100\"\n• \"Price for cost 60, margin 40%\"\n• \"Convert 50% markup to margin\"\n\n**Business:**\n• \"Profit from price 100, cost 60\"\n• \"20% discount on 150\"\n• \"15% tip on 50\"\n• \"ROI: gain 1200, cost 1000\"\n\n**Currency:**\n• \"100 USD to CAD\"\n\nType 'help' for more examples!";
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      appendMessage({ role: 'assistant', content: response });
       setLoading(false);
     }, 500);
   };
