@@ -359,7 +359,7 @@ function AIChatbot() {
           currency = 'USD';
         }
         
-        return `**$${finalPrice.toFixed(2)} ${currency}**`;
+        return `**Selling Price: $${finalPrice.toFixed(2)} ${currency}**\n\n✅ **Verification:**\nCost: $${cost.toFixed(2)}\nSelling Price: $${finalPrice.toFixed(2)}\nProfit: $${(finalPrice - cost).toFixed(2)}\nMargin: ${margin.toFixed(2)}% ✓`;
       }
     }
 
