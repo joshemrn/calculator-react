@@ -74,6 +74,165 @@ function useTheme() {
   return context;
 }
 
+// ==================== AI CHATBOT ====================
+function AIChatbot() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { role: 'assistant', content: 'Hi! I can help answer questions about margins, pricing, and revenue calculations. Ask me anything!' }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { theme } = useTheme();
+
+  const knowledgeBase = {
+    'what is margin': 'Margin is the difference between the cost of a product and its selling price, expressed as a percentage. Formula: Margin % = ((Revenue - Cost) / Revenue) × 100',
+    'how to calculate margin': 'To calculate margin: 1) Subtract cost from revenue, 2) Divide by revenue, 3) Multiply by 100. Example: If revenue is $100 and cost is $60, margin = (($100-$60)/$100) × 100 = 40%',
+    'margin vs markup': 'Margin is based on selling price, markup is based on cost. Margin % = ((Price - Cost) / Price) × 100. Markup % = ((Price - Cost) / Cost) × 100. A 50% margin equals a 100% markup.',
+    'what is revenue': 'Revenue is the total income from sales before any costs are deducted. It\'s also called the selling price or sale price.',
+    'how to price': 'To calculate price from cost and margin: Price = Cost / (1 - Margin%). Example: $60 cost with 40% margin = $60 / (1 - 0.40) = $100',
+    'shipping calculation': 'In the Pricing Calculator, shipping is automatically added at 3% for CAD and 4% for USD. Total cost = Base cost + Shipping before applying margin.',
+    'exchange rate': 'The calculators use live exchange rates from exchangerate-api.com. CAD to USD is around 0.72-0.75, meaning 1 CAD ≈ $0.72-0.75 USD.',
+    'difference between calculators': 'Margin Calculator: For calculating margin/revenue/cost (enter any 2, get the 3rd). Pricing Calculator: For calculating final prices with shipping and multiple margin tiers (A, B/C/Wholesale).',
+    'margin tiers': 'Price A uses one margin percentage, Price B/C/Wholesale uses a higher margin for bulk/wholesale pricing. Both are calculated from total cost (base + shipping).',
+    'save calculations': 'Your calculations are saved automatically to browser localStorage. Click "Show History" to view recent calculations.',
+    'gross margin': 'Gross margin is the same as margin percentage - it shows profitability before operating expenses. Formula: (Revenue - Cost of Goods) / Revenue × 100',
+    'profit margin': 'Profit margin and gross margin are similar. Our calculator shows gross margin (revenue minus direct costs). Net profit margin would subtract all expenses.',
+    'break even': 'Break-even is when revenue equals total costs (margin = 0%). To break even, set your price equal to or above total cost including shipping.',
+    'minimum margin': 'There\'s no universal minimum margin - it depends on your industry and expenses. Common ranges: Retail 30-50%, Wholesale 10-30%, Services 15-40%.',
+    'why use margin': 'Margin % is better than markup % for business decisions because it shows true profitability relative to sales, making it easier to compare across products and calculate net profit.'
+  };
+
+  const findAnswer = (question) => {
+    const q = question.toLowerCase();
+    
+    for (const [key, answer] of Object.entries(knowledgeBase)) {
+      if (q.includes(key)) return answer;
+    }
+    
+    if (q.includes('margin')) return 'Margin is the profit percentage based on selling price. Use our Margin Calculator to enter any 2 values (cost, margin %, revenue) and it will calculate the third. Need something specific?';
+    if (q.includes('price') || q.includes('pricing')) return 'Use the Pricing Calculator for price calculations with automatic shipping (3% CAD / 4% USD) and custom margin tiers. Enter your cost and margins to get final prices.';
+    if (q.includes('revenue') || q.includes('sales')) return 'Revenue is your selling price or total sales amount. In the calculator, enter cost and margin % to calculate revenue, or enter revenue and cost to find margin %.';
+    if (q.includes('cost')) return 'Cost is your base expense before markup/margin. In Pricing Calculator, shipping is added automatically (3-4%) to get total cost before applying margins.';
+    if (q.includes('calculator') || q.includes('tool')) return 'We have 2 calculators: Margin & Revenue (for calculating any of: cost, margin %, revenue) and Pricing Formula (for final prices with shipping and margin tiers). Both support CAD/USD.';
+    if (q.includes('cad') || q.includes('usd') || q.includes('currency')) return 'Both calculators support CAD and USD with live exchange rates. The Margin Calculator shows CAD→USD conversion, Pricing Calculator lets you choose currency for base calculations.';
+    
+    return 'I can help with margin calculations, pricing formulas, revenue, costs, exchange rates, and how to use the calculators. Try asking about: "what is margin", "how to calculate margin", "margin vs markup", "pricing calculator", or "exchange rates".';
+  };
+
+  const handleSend = () => {
+    if (!input.trim() || loading) return;
+    
+    const userMessage = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setLoading(true);
+    
+    setTimeout(() => {
+      const answer = findAnswer(input);
+      setMessages(prev => [...prev, { role: 'assistant', content: answer }]);
+      setLoading(false);
+    }, 500);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  if (!isOpen) {
+    return (
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-110"
+        aria-label="Open AI Chat"
+      >
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="12" cy="11" r="1" fill="currentColor"/>
+          <circle cx="8" cy="11" r="1" fill="currentColor"/>
+          <circle cx="16" cy="11" r="1" fill="currentColor"/>
+        </svg>
+      </button>
+    );
+  }
+
+  const isPro = theme === 'professional';
+
+  return (
+    <div className={`fixed bottom-6 right-6 z-50 w-96 ${isPro ? 'bg-white border border-slate-200 shadow-xl' : 'bg-white shadow-2xl'} rounded-2xl flex flex-col max-h-[600px]`}>
+      <div className={`${isPro ? 'bg-slate-900' : 'bg-gradient-to-r from-indigo-600 to-purple-600'} text-white p-4 rounded-t-2xl flex items-center justify-between`}>
+        <div className="flex items-center gap-3">
+          <div className={`${isPro ? 'bg-slate-700' : 'bg-white/20'} p-2 rounded-lg`}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <h3 className={`${isPro ? 'text-sm' : 'text-base'} font-bold`}>Margin Assistant</h3>
+            <p className="text-xs opacity-90">Ask me anything about margins</p>
+          </div>
+        </div>
+        <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1 rounded transition">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+        {messages.map((msg, idx) => (
+          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
+              msg.role === 'user' 
+                ? isPro ? 'bg-slate-900 text-white' : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                : isPro ? 'bg-white border border-slate-200 text-slate-900' : 'bg-white text-slate-900 shadow-sm'
+            }`}>
+              <p className="text-sm leading-relaxed whitespace-pre-line">{msg.content}</p>
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className={`${isPro ? 'bg-white border border-slate-200' : 'bg-white shadow-sm'} rounded-2xl px-4 py-2.5`}>
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 bg-white border-t border-slate-200 rounded-b-2xl">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask about margins, pricing..."
+            className={`flex-1 ${isPro ? 'border border-slate-200' : 'border-2 border-slate-200'} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${isPro ? 'focus:ring-slate-300' : 'focus:ring-indigo-400'} focus:border-transparent`}
+          />
+          <button
+            onClick={handleSend}
+            disabled={!input.trim() || loading}
+            className={`${isPro ? 'bg-slate-900 hover:bg-slate-800' : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'} text-white px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <p className="text-xs text-slate-500 mt-2">Try: "what is margin?", "how to calculate price", "margin vs markup"</p>
+      </div>
+    </div>
+  );
+}
+
 function AuthLayout({ children }) {
   const { user, loading } = useAuthState();
   if (loading) return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-sky-50 flex items-center justify-center"><div>Loading...</div></div>;
@@ -98,6 +257,7 @@ function PageShell({ children }) {
           {theme === 'bold' ? 'Professional' : 'Bold'} Design
         </button>
       </div>
+      <AIChatbot />
       {children}
     </div>
   );
