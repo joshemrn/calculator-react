@@ -74,6 +74,557 @@ function useTheme() {
   return context;
 }
 
+// ==================== AI CHATBOT ====================
+function AIChatbot() {
+  const defaultMessages = useMemo(() => ([
+    { role: 'assistant', content: '👋 Hi! I\'m your margin calculation assistant.\n\nI can help you with:\n• Margin, markup, pricing calculations\n• Currency conversions (USD ↔ CAD)\n• Percentage & math (30% of 130)\n• Profit, discount, tax, ROI\n• Tips, interest, averages\n• And much more!\n\nJust ask naturally or type "help" for examples! 😊' }
+  ]), []);
+
+  const [isOpen, setIsOpen] = useState(() => {
+    const saved = localStorage.getItem('aiChatIsOpen');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('aiChatMessages');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) && parsed.length ? parsed.slice(-50) : defaultMessages;
+      } catch (_) {
+        return defaultMessages;
+      }
+    }
+
+    return defaultMessages;
+  });
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { theme } = useTheme();
+  const [cadToUsd, setCadToUsd] = useState(0.72);
+  const [usdToCad, setUsdToCad] = useState(1.39);
+  const [manualRate, setManualRate] = useState(null);
+
+  const appendMessage = (newMessage) => {
+    setMessages(prev => [...prev, newMessage].slice(-50));
+  };
+
+  useEffect(() => {
+    localStorage.setItem('aiChatMessages', JSON.stringify(messages.slice(-50)));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem('aiChatIsOpen', JSON.stringify(isOpen));
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!sessionStorage.getItem('aiChatWidgetOpened')) {
+      sessionStorage.setItem('aiChatWidgetOpened', 'true');
+      setIsOpen(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Fetch live exchange rates with fallback
+    fetch('https://api.exchangerate.host/latest?base=USD&symbols=CAD')
+      .then(r => r.json())
+      .then(d => {
+        if (d.rates && d.rates.CAD) {
+          setUsdToCad(d.rates.CAD);
+          setCadToUsd((1 / d.rates.CAD));
+        }
+      })
+      .catch(() => {
+        // Fallback rates if API fails
+        setUsdToCad(1.39);
+        setCadToUsd(0.72);
+      });
+  }, []);
+
+  const extractNumbers = (text) => {
+    const numbers = text.match(/\d+\.?\d*/g);
+    return numbers ? numbers.map(n => parseFloat(n)) : [];
+  };
+
+  // Core calculation functions
+  const marginFromCostAndPrice = (cost, price) => {
+    return ((price - cost) / price * 100);
+  };
+
+  const priceFromCostAndMargin = (cost, margin) => {
+    return cost / (1 - margin / 100);
+  };
+
+  const costFromPriceAndMargin = (price, margin) => {
+    return price * (1 - margin / 100);
+  };
+
+  const markupFromMargin = (margin) => {
+    return (margin / (100 - margin)) * 100;
+  };
+
+  const marginFromMarkup = (markup) => {
+    return (markup / (100 + markup)) * 100;
+  };
+
+  const performCalculation = (question) => {
+    const q = question.toLowerCase();
+    const numbers = extractNumbers(question);
+
+    // Simple greetings and chat
+    if (q.match(/^(hi|hello|hey|good morning|good afternoon|good evening)$/)) {
+      return `👋 Hey there! I'm your margin calculation assistant. How can I help you today?`;
+    }
+    
+    if (q.includes('how are you') || q.includes('how r u')) {
+      return `I'm doing great, thanks for asking! 😊 Ready to help with calculations. What would you like to calculate?`;
+    }
+    
+    if (q.includes('thank') || q.includes('thx') || q.includes('thanks')) {
+      return `You're welcome! 😊 Let me know if you need anything else!`;
+    }
+    
+    if (q.match(/^(bye|goodbye|see you|cya)$/)) {
+      return `Goodbye! 👋 Come back anytime you need help with calculations!`;
+    }
+
+    if (q.includes('who are you') || q.includes('what are you')) {
+      return `I'm your AI margin calculation assistant! 🤖 I can help you with:\n• Margin calculations\n• Markup conversions\n• Pricing formulas\n• Currency conversions\n• Percentage calculations\n• And much more!\n\nJust ask me anything!`;
+    }
+
+    if (q.includes('help') || q === '?') {
+      return `🆘 **Here's what I can do:**\n\n**Calculations:**\n• "30% of 130" - Percentage\n• "Calculate margin with cost 50 and price 100"\n• "What price for cost 60 and margin 40%?"\n• "Convert 50% markup to margin"\n• "Cost 10 + freight 2 + duties 1, margin 40%"\n\n**Currency:**\n• "Convert 100 USD to CAD"\n• "Set rate 1.40" - Override exchange rate\n\n**Math:**\n• "What is 25 + 75?"\n• "150 - 30"\n• "12 × 8" or "12 * 8"\n• "100 / 4"\n\nJust type your question naturally!`;
+    }
+
+    // Simple percentage calculation: "30% of 130" or "what is 30% of 130"
+    // Supports: "30% of 130", "30 percent of 130", "what's 30% of 130", "calculate 30% of 130", etc.
+    // BUT NOT if it mentions "margin", "cost", "price" - those are business calculations
+    if (((q.includes('%') && q.includes('of')) || (q.match(/\d+%?\s*of\s*\d+/)) || 
+        (q.includes('percent') && q.includes('of')) ||
+        ((q.includes('what') || q.includes('calculate')) && q.includes('%') && numbers.length >= 2)) &&
+        !q.includes('margin') && !q.includes('markup') && !q.includes('cost') && !q.includes('price')) {
+      if (numbers.length >= 2) {
+        const percent = numbers[0];
+        const amount = numbers[1];
+        const result = (percent / 100 * amount).toFixed(2);
+        return `**${result}**`;
+      }
+    }
+
+    // Percentage increase/decrease
+    // Supports: "increase 100 by 20%", "add 20% to 100", "100 plus 20%", "decrease 200 by 15%", "reduce by 10%", etc.
+    if ((q.includes('increase') || q.includes('decrease') || q.includes('add') || q.includes('plus') || 
+         q.includes('reduce') || q.includes('subtract') || q.includes('minus') || q.includes('less')) && q.includes('%')) {
+      if (numbers.length >= 2) {
+        const amount = numbers[0];
+        const percent = numbers[1];
+        const change = (amount * percent / 100).toFixed(2);
+        const result = (q.includes('increase') || q.includes('add') || q.includes('plus'))
+          ? (parseFloat(amount) + parseFloat(change)).toFixed(2)
+          : (parseFloat(amount) - parseFloat(change)).toFixed(2);
+        
+        return `**${result}**`;
+      }
+    }
+
+    // What percentage is X of Y
+    // Supports: "what % is 25 of 100", "25 is what percent of 100", "percentage of 25 out of 100", etc.
+    if ((q.includes('what') || q.includes('what\'s')) && (q.includes('percentage') || q.includes('percent') || q.includes('%')) && 
+        (q.includes('of') || q.includes('out of'))) {
+      if (numbers.length >= 2) {
+        const part = numbers[0];
+        const whole = numbers[1];
+        const percent = (part / whole * 100).toFixed(2);
+        return `**${percent}%**`;
+      }
+    }
+
+    // Basic arithmetic - Addition
+    if ((q.includes('+') || q.includes('plus') || q.includes('add')) && numbers.length >= 2) {
+      const sum = numbers.reduce((a, b) => a + b, 0);
+      return `**${sum.toFixed(2)}**`;
+    }
+
+    // Basic arithmetic - Subtraction
+    if ((q.includes('-') || q.includes('minus') || q.includes('subtract')) && numbers.length >= 2) {
+      const diff = numbers.reduce((a, b) => a - b);
+      return `**${diff.toFixed(2)}**`;
+    }
+
+    // Basic arithmetic - Multiplication
+    if ((q.includes('×') || q.includes('*') || q.includes('multiply') || q.includes('times')) && numbers.length >= 2) {
+      const product = numbers.reduce((a, b) => a * b, 1);
+      return `**${product.toFixed(2)}**`;
+    }
+
+    // Basic arithmetic - Division
+    if ((q.includes('/') || q.includes('÷') || q.includes('divide') || q.includes('divided')) && numbers.length >= 2) {
+      const quotient = numbers.reduce((a, b) => a / b);
+      return `**${quotient.toFixed(2)}**`;
+    }
+
+    // Profit calculation
+    // Supports: "profit from 100 and 60", "100 selling 60 cost profit", "revenue 100 cost 60", etc.
+    if ((q.includes('profit') || (q.includes('revenue') && q.includes('cost'))) && numbers.length >= 2) {
+      const price = numbers[0];
+      const cost = numbers[1];
+      const profit = price - cost;
+      return `**$${profit.toFixed(2)}**`;
+    }
+
+    // Discount calculation
+    // Supports: "20% discount on 150", "150 with 20% off", "discount 150 by 20%", "20% off 150", etc.
+    if ((q.includes('discount') || q.includes('off')) && numbers.length >= 2) {
+      const price = numbers[0];
+      const discount = numbers[1];
+      const savings = (price * discount / 100).toFixed(2);
+      const final = (price - savings).toFixed(2);
+      return `**$${final}**`;
+    }
+
+    // Tax calculation
+    // Supports: "100 with 13% tax", "add 13% tax to 100", "tax on 100 at 13%", etc.
+    if ((q.includes('tax') || q.includes('gst') || q.includes('hst') || q.includes('vat')) && numbers.length >= 2) {
+      const amount = numbers[0];
+      const taxRate = numbers[1];
+      const tax = (amount * taxRate / 100).toFixed(2);
+      const total = (parseFloat(amount) + parseFloat(tax)).toFixed(2);
+      return `**$${total}**`;
+    }
+
+    // Break-even calculation
+    if (q.includes('break even') || q.includes('breakeven')) {
+      if (numbers.length >= 2) {
+        const fixedCosts = numbers[0];
+        const pricePerUnit = numbers.length >= 3 ? numbers[1] : numbers[0];
+        const costPerUnit = numbers.length >= 3 ? numbers[2] : numbers[1];
+        const breakEven = Math.ceil(fixedCosts / (pricePerUnit - costPerUnit));
+        return `**${breakEven} units**`;
+      }
+    }
+
+    // ROI calculation (Return on Investment)
+    if ((q.includes('roi') || q.includes('return on investment')) && numbers.length >= 2) {
+      const gain = numbers[0];
+      const cost = numbers[1];
+      const roi = ((gain - cost) / cost * 100).toFixed(2);
+      return `**${roi}%**`;
+    }
+
+    // Tip calculator
+    // Supports: "15% tip on 50", "tip 50 at 15%", "50 bill 15% tip", "gratuity 15% on 50", etc.
+    if ((q.includes('tip') || q.includes('gratuity')) && numbers.length >= 2) {
+      const bill = numbers[0];
+      const tipPercent = numbers[1];
+      const tip = (bill * tipPercent / 100).toFixed(2);
+      const total = (parseFloat(bill) + parseFloat(tip)).toFixed(2);
+      return `**$${total}**`;
+    }
+
+    // Average calculation
+    // Supports: "average of 10 20 30", "mean of 10, 20, 30", "avg 10 20 30 40", etc.
+    if ((q.includes('average') || q.includes('mean') || q.includes('avg')) && numbers.length >= 2) {
+      const avg = (numbers.reduce((a, b) => a + b, 0) / numbers.length).toFixed(2);
+      return `**${avg}**`;
+    }
+
+    // Manual rate override
+    if (q.includes('set rate') && numbers.length >= 1) {
+      const rate = numbers[0];
+      setManualRate(rate);
+      setUsdToCad(rate);
+      setCadToUsd(1 / rate);
+      return `✅ **Exchange Rate Updated**\n\n1 USD = $${rate.toFixed(4)} CAD\n1 CAD = $${(1/rate).toFixed(4)} USD\n\nThis rate will be used for all conversions until you refresh the page.`;
+    }
+
+    // Currency conversion CAD to USD
+    if ((q.includes('convert') && q.includes('cad')) || (q.includes('to usd') && numbers.length >= 1)) {
+      const cad = numbers[0];
+      const rate = manualRate ? (1 / manualRate) : cadToUsd;
+      const usd = (cad * rate).toFixed(2);
+      return `**$${usd} USD**`;
+    }
+
+    // Currency conversion USD to CAD
+    if ((q.includes('convert') && q.includes('usd')) || (q.includes('to cad') && numbers.length >= 1)) {
+      const usd = numbers[0];
+      const rate = manualRate ? manualRate : usdToCad;
+      const cad = (usd * rate).toFixed(2);
+      return `**$${cad} CAD**`;
+    }
+
+    // Margin calculation from cost and price - MUST COME FIRST
+    // "cost $100, selling for $145, what is the margin?" - calculate margin from two values
+    // Supports many variations: "selling for", "selling at", "sold for", "sale price", "retail price", etc.
+    if (((q.includes('margin') || q.includes('what')) && q.includes('cost') && (q.includes('selling for') || q.includes('sell for') || q.includes('selling at') || q.includes('sold for'))) ||
+        (q.includes('margin') && q.includes('cost') && (q.includes('price') || q.includes('revenue') || q.includes('selling') || q.includes('sell'))) ||
+        (q.includes('what') && q.includes('margin') && numbers.length >= 2 && !q.includes('need') && !q.includes('want')) ||
+        (q.includes('margin') && (q.includes('sold for') || q.includes('selling at') || q.includes('sale price') || q.includes('retail'))) ||
+        ((q.includes('cost') || q.includes('cogs')) && (q.includes('sell') || q.includes('sale') || q.includes('retail')) && q.includes('margin'))) {
+      if (numbers.length >= 2) {
+        const cost = numbers[0];
+        const price = numbers[1];
+        const margin = marginFromCostAndPrice(cost, price);
+        
+        return `**${margin.toFixed(2)}%**`;
+      }
+    }
+
+    // Complex natural language: "cost X, margin Y%, what's price in CAD/USD"
+    // IMPORTANT: Questions like "if cost is 13 USD what is 3% margin?" mean "what price gives 3% margin"
+    // This should NOT trigger if asking "what is the margin" (which calculates margin from cost and price)
+    // Supports variations: "with X% margin", "at Y% margin", "need Z% margin", "want margin of W%", etc.
+    if ((q.includes('cost') && q.includes('margin') && !q.includes('what is the') && !q.includes('selling for') && !q.includes('sell for') && (q.includes('need') || q.includes('want') || q.includes('with') || q.includes('at'))) ||
+        (q.includes('if cost') && q.includes('margin')) ||
+        ((q.includes('need') || q.includes('want') || q.includes('require')) && q.includes('margin') && q.includes('%')) ||
+        (q.includes('with') && q.includes('margin') && q.includes('%') && (q.includes('cost') || q.includes('cogs')))) {
+      if (numbers.length >= 2) {
+        // When someone asks "if cost is 13 what is 3% margin"
+        // They want: what price to sell at for 3% margin with cost of 13
+        // First number is usually cost, second is margin %
+        let cost = numbers[0];
+        let margin = numbers[1];
+        
+        // Smart detection: if question asks "what is the margin" it's asking to CALCULATE margin
+        // Otherwise it's asking to calculate price WITH a margin
+        
+        // If second number is much larger than first AND contains words like "selling/price"
+        // Then they're giving cost and price, asking for margin
+        if ((q.includes('selling') || q.includes('sell for')) && numbers[1] > numbers[0]) {
+          // This is actually "cost X, selling for Y, what margin?"
+          // This case is handled by the margin calculation above
+          return null;
+        }
+        
+        // Smart detection: if second number is very small (< 1) it might be a decimal margin
+        // if first number is small (< 100) and second is larger, they might be in order
+        // Pattern: "cost X" usually comes before "margin Y%"
+        const costIndex = q.indexOf('cost');
+        const marginIndex = q.indexOf('margin');
+        
+        // If margin appears first in the sentence, swap them
+        if (marginIndex > 0 && marginIndex < costIndex) {
+          [cost, margin] = [margin, cost];
+        }
+        
+        // Calculate price from cost and margin
+        const price = priceFromCostAndMargin(cost, margin);
+        
+        let finalPrice = price;
+        let currency = 'CAD';
+        let explanation = '';
+        
+        // Check if USD cost needs CAD conversion
+        if (q.includes('usd') && q.includes('cad')) {
+          const rate = manualRate ? manualRate : usdToCad;
+          if (q.includes('cost') && q.includes('usd') && !q.includes('price')) {
+            // USD cost, want CAD price
+            const cadCost = cost * rate;
+            finalPrice = priceFromCostAndMargin(cadCost, margin);
+            explanation = `\n\n💱 **Currency Conversion:**\nCost: ${cost} USD × ${rate.toFixed(4)} = $${cadCost.toFixed(2)} CAD\nThen applied ${margin}% margin`;
+            currency = 'CAD';
+          } else if (q.includes('price') && q.includes('cad')) {
+            // CAD cost, want CAD price
+            finalPrice = price;
+            currency = 'CAD';
+          }
+        } else if (q.includes('usd')) {
+          currency = 'USD';
+        }
+        
+        return `**Selling Price: $${finalPrice.toFixed(2)} ${currency}**\n\n✅ **Verification:**\nCost: $${cost.toFixed(2)}\nSelling Price: $${finalPrice.toFixed(2)}\nProfit: $${(finalPrice - cost).toFixed(2)}\nMargin: ${margin.toFixed(2)}% ✓`;
+      }
+    }
+
+    // Cost calculation from price and margin
+    // Supports: "price 100 with 30% margin what's cost", "retail 150, margin 40%, find cost", etc.
+    if ((q.includes('cost') || q.includes('cogs')) && (q.includes('price') || q.includes('revenue') || q.includes('retail') || q.includes('sale')) && q.includes('margin')) {
+      if (numbers.length >= 2) {
+        const price = numbers[0];
+        const margin = numbers[1];
+        const cost = costFromPriceAndMargin(price, margin);
+        
+        return `**$${cost.toFixed(2)}**`;
+      }
+    }
+
+    // Markup to Margin conversion
+    // Supports: "50% markup to margin", "convert 100% markup", "markup 75% as margin", etc.
+    if ((q.includes('markup') && (q.includes('margin') || q.includes('to margin') || q.includes('as margin') || q.includes('convert'))) || 
+        q.includes('markup to margin')) {
+      if (numbers.length >= 1) {
+        const markup = numbers[0];
+        const margin = marginFromMarkup(markup);
+        
+        return `**${margin.toFixed(2)}%**`;
+      }
+    }
+
+    // Margin to Markup conversion
+    // Supports: "30% margin to markup", "convert 40% margin", "margin 25% as markup", etc.
+    if ((q.includes('margin') && (q.includes('markup') || q.includes('to markup') || q.includes('as markup') || q.includes('convert'))) || 
+        q.includes('margin to markup')) {
+      if (numbers.length >= 1) {
+        const margin = numbers[0];
+        const markup = markupFromMargin(margin);
+        
+        return `**${markup.toFixed(2)}%**`;
+      }
+    }
+
+    // Multi-cost margin (cost + freight + duties + overhead)
+    // Supports: "cost 10 freight 2 duties 1 margin 40%", "10 + 2 + 1 with 35% margin", "total cost 13, margin 30%", etc.
+    if ((q.includes('freight') || q.includes('duties') || q.includes('overhead') || q.includes('multiple cost') || 
+         q.includes('shipping') || q.includes('handling') || q.includes('total cost') || q.includes('+')) && 
+        (q.includes('margin') || q.includes('price'))) {
+      if (numbers.length >= 2) {
+        const costs = numbers;
+        const totalCost = costs.reduce((sum, c) => sum + c, 0);
+        let margin = 35; // default
+        
+        // Check if margin is specified
+        if (q.includes('margin') && q.match(/(\d+)%/)) {
+          margin = parseFloat(q.match(/(\d+)%/)[1]);
+        } else if (numbers.length > costs.length - 1) {
+          margin = numbers[numbers.length - 1];
+        }
+        
+        const price = priceFromCostAndMargin(totalCost, margin);
+        
+        return `**$${price.toFixed(2)}**`;
+      }
+    }
+
+    // Simple price from cost and margin
+    // Supports: "price for cost 60 margin 40%", "sell price 100 30%", "what to charge for 50 with 35%", etc.
+    if ((q.includes('price') || q.includes('selling') || q.includes('sell') || q.includes('charge') || q.includes('retail')) && 
+        (q.includes('cost') || q.includes('cogs')) && (q.includes('margin') || q.includes('%'))) {
+      if (numbers.length >= 2) {
+        const cost = numbers[0];
+        const margin = numbers[1];
+        const price = priceFromCostAndMargin(cost, margin);
+        
+        return `**$${price.toFixed(2)}**`;
+      }
+    }
+
+    return null;
+  };
+
+  const handleSend = () => {
+    if (!input.trim() || loading) return;
+
+    const userMessage = { role: 'user', content: input };
+    appendMessage(userMessage);
+    setInput('');
+    setLoading(true);
+
+    setTimeout(() => {
+      const answer = performCalculation(input);
+      const response = answer || "I can help with many calculations! Try:\n\n**Percentages & Math:**\n• \"30% of 130\"\n• \"What is 25 + 75?\"\n• \"150 - 30\"\n• \"12 × 8\"\n\n**Margin & Pricing:**\n• \"Margin with cost 50 and price 100\"\n• \"Price for cost 60, margin 40%\"\n• \"Convert 50% markup to margin\"\n\n**Business:**\n• \"Profit from price 100, cost 60\"\n• \"20% discount on 150\"\n• \"15% tip on 50\"\n• \"ROI: gain 1200, cost 1000\"\n\n**Currency:**\n• \"100 USD to CAD\"\n\nType 'help' for more examples!";
+      appendMessage({ role: 'assistant', content: response });
+      setLoading(false);
+    }, 500);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  if (!isOpen) {
+    return (
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-110"
+        aria-label="Open AI Chat"
+      >
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="12" cy="11" r="1" fill="currentColor"/>
+          <circle cx="8" cy="11" r="1" fill="currentColor"/>
+          <circle cx="16" cy="11" r="1" fill="currentColor"/>
+        </svg>
+      </button>
+    );
+  }
+
+  const isPro = theme === 'professional';
+
+  return (
+    <div className={`fixed bottom-6 right-6 z-50 w-96 ${isPro ? 'bg-white border border-slate-200 shadow-xl' : 'bg-white shadow-2xl'} rounded-2xl flex flex-col max-h-[600px]`}>
+      <div className={`${isPro ? 'bg-slate-900' : 'bg-gradient-to-r from-indigo-600 to-purple-600'} text-white p-4 rounded-t-2xl flex items-center justify-between`}>
+        <div className="flex items-center gap-3">
+          <div className={`${isPro ? 'bg-slate-700' : 'bg-white/20'} p-2 rounded-lg`}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <h3 className={`${isPro ? 'text-sm' : 'text-base'} font-bold`}>Margin Assistant</h3>
+            <p className="text-xs opacity-90">Ask me anything about margins</p>
+          </div>
+        </div>
+        <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1 rounded transition">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+        {messages.map((msg, idx) => (
+          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
+              msg.role === 'user' 
+                ? isPro ? 'bg-slate-900 text-white' : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                : isPro ? 'bg-white border border-slate-200 text-slate-900' : 'bg-white text-slate-900 shadow-sm'
+            }`}>
+              <p className="text-sm leading-relaxed whitespace-pre-line">{msg.content}</p>
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className={`${isPro ? 'bg-white border border-slate-200' : 'bg-white shadow-sm'} rounded-2xl px-4 py-2.5`}>
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 bg-white border-t border-slate-200 rounded-b-2xl">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask about margins, pricing..."
+            className={`flex-1 ${isPro ? 'border border-slate-200' : 'border-2 border-slate-200'} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${isPro ? 'focus:ring-slate-300' : 'focus:ring-indigo-400'} focus:border-transparent`}
+          />
+          <button
+            onClick={handleSend}
+            disabled={!input.trim() || loading}
+            className={`${isPro ? 'bg-slate-900 hover:bg-slate-800' : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'} text-white px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <p className="text-xs text-slate-500 mt-2">Try: "what is margin?", "how to calculate price", "margin vs markup"</p>
+      </div>
+    </div>
+  );
+}
+
 function AuthLayout({ children }) {
   const { user, loading } = useAuthState();
   if (loading) return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-sky-50 flex items-center justify-center"><div>Loading...</div></div>;
@@ -98,6 +649,7 @@ function PageShell({ children }) {
           {theme === 'bold' ? 'Professional' : 'Bold'} Design
         </button>
       </div>
+      <AIChatbot />
       {children}
     </div>
   );
