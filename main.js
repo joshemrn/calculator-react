@@ -1852,6 +1852,20 @@ function HomePage() {
                   </div>
                 </div>
               </Link>
+
+              <Link to="/kit" className="group block bg-white rounded-xl p-6 hover:shadow-lg border border-slate-200 hover:border-slate-300 transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-indigo-50 rounded-lg">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4b42ff" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                  </div>
+                  <span className="opacity-0 group-hover:opacity-100 transition text-slate-400 text-xl">→</span>
+                </div>
+                <h2 className="text-xl font-semibold text-slate-900 mb-2">Calculator Kit</h2>
+                <p className="text-sm text-slate-600 leading-relaxed mb-3">Design playground — 30+ live tweaks, 6 presets, fields & keypad modes</p>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 rounded-full text-xs font-semibold text-indigo-700">
+                  30+ KNOBS
+                </div>
+              </Link>
             </section>
 
             <section className="mt-8 bg-white rounded-xl border border-slate-200 p-6">
@@ -1954,6 +1968,20 @@ function HomePage() {
                   </div>
                 </div>
               </Link>
+
+              <Link to="/kit" className="group block bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-md hover:border-blue-200 transition-all duration-200">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2.5 bg-indigo-50 rounded-lg">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4b42ff" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                  </div>
+                  <span className="opacity-0 group-hover:opacity-100 transition text-gray-400 text-lg">→</span>
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Calculator Kit</h2>
+                <p className="text-sm text-gray-600 leading-relaxed mb-3">Design playground — 30+ live tweaks, 6 presets, fields & keypad modes</p>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 rounded-full text-xs font-medium text-indigo-600">
+                  30+ KNOBS
+                </div>
+              </Link>
             </section>
           </main>
         </div>
@@ -2036,6 +2064,25 @@ function HomePage() {
               </div>
             </div>
           </Link>
+
+          <Link to="/kit" className="group relative block bg-white rounded-3xl p-8 hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300">
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 p-[3px]">
+              <div className="h-full w-full bg-white rounded-3xl"></div>
+            </div>
+            <div className="relative">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-xl">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6d28d9" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                </div>
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity text-violet-600 text-3xl font-bold">→</div>
+              </div>
+              <h2 className="text-3xl font-black text-slate-900 mb-3">Calculator Kit</h2>
+              <p className="text-lg text-slate-600 font-medium leading-relaxed">Design playground with 30+ live tweaks, 6 presets, fields & keypad modes</p>
+              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full">
+                <span className="text-sm font-bold text-indigo-700">30+ KNOBS</span>
+              </div>
+            </div>
+          </Link>
         </section>
 
         <section className="mt-8 bg-white rounded-3xl border-2 border-slate-200 p-8 shadow-sm">
@@ -2079,6 +2126,380 @@ function HomePage() {
   );
 }
 
+// ==================== CALCULATOR CONSTRUCTION KIT ====================
+function CalculatorKit() {
+  const navigate = useNavigate();
+
+  const [s, setS] = React.useState({
+    theme:'paper', accent:'indigo', font:'inter', displayfont:'mono',
+    density:'cozy', fieldstyle:'filled', keystyle:'soft', mode:'fields',
+    labels:'on', units:'on', actions:'on', header:'on', foot:'on',
+    emoji:'off', resulttint:'off', shadow:'soft', displaybg:'default', texture:'off',
+  });
+  const [cv, setCv] = React.useState({ displaySize:34, keySize:19, labelWeight:500, outerRadius:18, keyRadius:14 });
+  const [nums, setNums] = React.useState({ cost:72.94, margin:19, currency:'USD' });
+  const [copy, setCopy] = React.useState({ title:'Margin Calculator', meta:'LAST · APR 17', footLeft:'Based on 1 source', footRight:'17,332 helpful' });
+  const [kpad, setKpad] = React.useState({ expr:'72.94 × 1.19', display:'86.80', pending:null, op:null, fresh:true });
+
+  const presets = {
+    paper:    { theme:'paper',  accent:'indigo',    font:'inter',    displayfont:'mono',  density:'cozy',    fieldstyle:'filled',    keystyle:'soft',  shadow:'soft', resulttint:'on',  texture:'off' },
+    terminal: { theme:'ink',    accent:'lime',      font:'mono',     displayfont:'mono',  density:'cozy',    fieldstyle:'underline', keystyle:'ghost', shadow:'none', resulttint:'off', texture:'off' },
+    tactile:  { theme:'cream',  accent:'tangerine', font:'grotesk',  displayfont:'mono',  density:'roomy',   fieldstyle:'filled',    keystyle:'hard',  shadow:'hard', resulttint:'off', texture:'on'  },
+    editorial:{ theme:'paper',  accent:'ink',       font:'fraunces', displayfont:'serif', density:'roomy',   fieldstyle:'underline', keystyle:'ghost', shadow:'none', resulttint:'off', texture:'off' },
+    candy:    { theme:'rose',   accent:'cherry',    font:'grotesk',  displayfont:'mono',  density:'cozy',    fieldstyle:'pill',      keystyle:'round', shadow:'deep', resulttint:'on',  texture:'off' },
+    boring:   { theme:'mono',   accent:'ink',       font:'mono',     displayfont:'mono',  density:'compact', fieldstyle:'filled',    keystyle:'brick', shadow:'none', resulttint:'off', texture:'off' },
+  };
+
+  const set = (k, v) => setS(p => ({ ...p, [k]: v }));
+
+  const rev = nums.cost / (1 - nums.margin / 100);
+  const profit = rev - nums.cost;
+
+  const fmt = (n) => {
+    if (nums.currency === 'JPY') return Math.round(n).toLocaleString();
+    return n.toFixed(2);
+  };
+
+  function handleKey(k) {
+    setKpad(p => {
+      const digits = ['0','1','2','3','4','5','6','7','8','9','.'];
+      if (k === 'C') return { expr:'', display:'0', pending:null, op:null, fresh:true };
+      if (digits.includes(k)) {
+        const d = p.fresh ? k : (p.display === '0' && k !== '.' ? k : p.display + k);
+        return { ...p, display:d, expr: p.op ? p.expr + k : k, fresh:false };
+      }
+      if (k === '±') return { ...p, display: String(parseFloat(p.display) * -1) };
+      if (k === '%') return { ...p, display: String(parseFloat(p.display) / 100) };
+      const ops = { '÷':'÷', '×':'×', '−':'−', '+':'+' };
+      if (ops[k]) {
+        return { ...p, pending:parseFloat(p.display), op:k, expr:p.display + ' ' + k + ' ', fresh:true };
+      }
+      if (k === '=') {
+        if (!p.op || p.pending === null) return p;
+        const a = p.pending, b = parseFloat(p.display);
+        let r = a;
+        if (p.op === '+') r = a + b;
+        if (p.op === '−') r = a - b;
+        if (p.op === '×') r = a * b;
+        if (p.op === '÷') r = b !== 0 ? a / b : 0;
+        const result = parseFloat(r.toFixed(10)).toString();
+        return { expr: p.expr + p.display, display:result, pending:null, op:null, fresh:true };
+      }
+      return p;
+    });
+  }
+
+  const calcStyle = {
+    '--c-display-size': cv.displaySize + 'px',
+    '--c-key-size': cv.keySize + 'px',
+    '--c-label-weight': cv.labelWeight,
+    '--c-radius': cv.outerRadius + 'px',
+    '--c-radius-key': cv.keyRadius + 'px',
+  };
+
+  function SegControl({ prop, options }) {
+    return (
+      <div className="ck-seg">
+        {options.map(([v, label]) => (
+          <button key={v} aria-pressed={s[prop] === v ? 'true' : 'false'} onClick={() => set(prop, v)}>{label}</button>
+        ))}
+      </div>
+    );
+  }
+
+  function SwatchGroup({ prop, swatches }) {
+    return (
+      <div className="ck-swatches">
+        {swatches.map(([v, bg, border]) => (
+          <button key={v} data-v={v} style={{ background:bg, ...(border ? { borderColor:border } : {}) }}
+            aria-pressed={s[prop] === v ? 'true' : 'false'} title={v}
+            onClick={() => set(prop, v)} />
+        ))}
+      </div>
+    );
+  }
+
+  function Toggle({ prop }) {
+    const on = s[prop] === 'on';
+    return <div className="ck-toggle" aria-checked={on ? 'true' : 'false'} role="switch"
+      onClick={() => set(prop, on ? 'off' : 'on')} />;
+  }
+
+  function SliderRow({ label, cvKey, min, max, step = 1, unit = '', display }) {
+    const val = cv[cvKey];
+    return (
+      <div className="ck-row">
+        <label>{label}</label>
+        <input type="range" className="ck-range" min={min} max={max} step={step} value={val}
+          onChange={e => setCv(p => ({ ...p, [cvKey]: Number(e.target.value) }))} />
+        <span className="ck-bignum">{display || val}</span>
+      </div>
+    );
+  }
+
+  function DualRow({ prop, options }) {
+    return (
+      <div className="ck-dualrow">
+        {options.map(([v, label]) => (
+          <button key={v} aria-pressed={s[prop] === v ? 'true' : 'false'} onClick={() => set(prop, v)}>{label}</button>
+        ))}
+      </div>
+    );
+  }
+
+  const OpSvg = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>;
+
+  return (
+    <div className="calc-kit-shell">
+      {/* Stage */}
+      <div className="calc-kit-stage">
+        <div className="ck-marks">
+          <div className="tl">Construction Kit · v0.3</div>
+          <div className="tr"><span className="ck-green" />&nbsp;LIVE PREVIEW</div>
+          <div className="br">440 × auto · 1:1</div>
+        </div>
+        <div className="calc-wrap"
+          data-theme={s.theme} data-accent={s.accent} data-font={s.font}
+          data-displayfont={s.displayfont} data-density={s.density}
+          data-fieldstyle={s.fieldstyle} data-keystyle={s.keystyle}
+          data-mode={s.mode} data-labels={s.labels} data-units={s.units}
+          data-actions={s.actions} data-header={s.header} data-foot={s.foot}
+          data-emoji={s.emoji} data-resulttint={s.resulttint}
+          data-shadow={s.shadow} data-displaybg={s.displaybg} data-texture={s.texture}
+          style={calcStyle}>
+
+          <div className="calc-head">
+            <div className="title">
+              <span className="emoji">🧮</span>
+              <span>{copy.title}</span>
+            </div>
+            <div className="meta">
+              <span>{copy.meta}</span>
+              <span className="pin" title="pin">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v10M6 8l6-6 6 6M12 12v10"/></svg>
+              </span>
+            </div>
+          </div>
+
+          {/* Fields mode */}
+          <div className="fields">
+            <div className="cfield" data-field="cost">
+              <div className="flabel">
+                <span className="fname">Cost <span className="fi">i</span></span>
+                <span className="factions"><OpSvg /></span>
+              </div>
+              <div className="finput">
+                <div className="val">{fmt(nums.cost)}</div>
+                <div className="unit">{nums.currency} <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg></div>
+              </div>
+            </div>
+
+            <div className="cfield" data-field="margin">
+              <div className="flabel">
+                <span className="fname">Margin <span className="fi">i</span></span>
+                <span className="factions">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M12 2v10M6 8l6-6 6 6"/></svg>
+                  <OpSvg />
+                </span>
+              </div>
+              <div className="finput">
+                <div className="val">{nums.margin}</div>
+                <div className="unit">%</div>
+              </div>
+            </div>
+
+            <div className="cfield plain" data-field="revenue" data-result="true">
+              <div className="flabel">
+                <span className="fname">Revenue <span className="fi">i</span></span>
+                <span className="factions"><OpSvg /></span>
+              </div>
+              <div className="finput">
+                <div className="val">{fmt(rev)}</div>
+                <div className="unit">{nums.currency}</div>
+              </div>
+            </div>
+
+            <div className="cfield plain" data-field="profit" data-result="true">
+              <div className="flabel">
+                <span className="fname">Profit <span className="fi">i</span></span>
+                <span className="factions"><OpSvg /></span>
+              </div>
+              <div className="finput">
+                <div className="val">{fmt(profit)}</div>
+                <div className="unit">{nums.currency}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Keypad mode */}
+          <div className="display-strip">
+            <div className="expr">{kpad.expr || '\u00a0'}</div>
+            <div className="big">{kpad.display}</div>
+          </div>
+          <div className="keypad">
+            {['C','±','%','÷','7','8','9','×','4','5','6','−','1','2','3','+'].map(k => (
+              <button key={k} className={`key${['÷','×','−','+','%','±'].includes(k) ? ' op' : ''}`}
+                onClick={() => handleKey(k)}>{k}</button>
+            ))}
+            <button className="key wide" onClick={() => handleKey('0')}>0</button>
+            <button className="key" onClick={() => handleKey('.')}>.</button>
+            <button className="key eq" onClick={() => handleKey('=')}>=</button>
+          </div>
+
+          <div className="calc-foot">
+            <span>{copy.footLeft}</span>
+            <span>{copy.footRight}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Tweak panel */}
+      <aside className="calc-kit-panel">
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
+          <div className="ck-stamp"><span className="ck-dot" /> ALWAYS-ON TWEAKS</div>
+          {navigate && (
+            <button onClick={() => navigate('/')}
+              style={{ background:'none', border:'none', cursor:'pointer', fontFamily:'JetBrains Mono,monospace', fontSize:'11px', color:'#6b645b', letterSpacing:'.06em' }}>
+              ← BACK
+            </button>
+          )}
+        </div>
+        <h1>Calculator construction kit</h1>
+        <div className="ck-sub">DRAG · TOGGLE · SWATCH · 30+ KNOBS</div>
+
+        <div className="ck-eyebrow">Presets</div>
+        <div className="ck-presets">
+          {[
+            ['paper','Paper note','warm · soft · indigo'],
+            ['terminal','Terminal','ink · mono · lime'],
+            ['tactile','Tactile','hard keys · shadow'],
+            ['editorial','Editorial','serif · underline'],
+            ['candy','Candy','rose · round · cherry'],
+            ['boring','Utility','mono · no-frills'],
+          ].map(([key, name, desc]) => (
+            <button key={key} onClick={() => setS(p => ({ ...p, ...presets[key] }))}>
+              <span className="pname">{name}</span>
+              <span className="pdesc">{desc}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="ck-eyebrow">Mode</div>
+        <div className="ck-row">
+          <label>Layout</label>
+          <SegControl prop="mode" options={[['fields','Fields'],['keypad','Keypad']]} />
+        </div>
+
+        <div className="ck-eyebrow">Color</div>
+        <div className="ck-row">
+          <label>Theme</label>
+          <SwatchGroup prop="theme" swatches={[
+            ['paper','#f5f1e6'],['ink','#17140f'],['mint','#d4e6d9'],
+            ['cream','#f8f1e0'],['arctic','#dae4f1'],['rose','#fbeff0'],['mono','#ffffff','#bbb'],
+          ]} />
+        </div>
+        <div className="ck-row">
+          <label>Accent</label>
+          <SwatchGroup prop="accent" swatches={[
+            ['indigo','#4b42ff'],['lime','#7bcc2a'],['tangerine','#ff7a1a'],
+            ['cherry','#e0254e'],['sky','#1f8fd4'],['lilac','#a66fff'],['mud','#7a5a2b'],['ink','#111'],
+          ]} />
+        </div>
+        <div className="ck-row"><label>Result tint</label><Toggle prop="resulttint" /></div>
+        <div className="ck-row"><label>Paper grain</label><Toggle prop="texture" /></div>
+
+        <div className="ck-eyebrow">Typography</div>
+        <div className="ck-row">
+          <label>UI font</label>
+          <SegControl prop="font" options={[['inter','Inter'],['grotesk','Grotesk'],['fraunces','Serif'],['mono','Mono']]} />
+        </div>
+        <div className="ck-row">
+          <label>Display</label>
+          <SegControl prop="displayfont" options={[['mono','Mono'],['sans','Sans'],['serif','Serif']]} />
+        </div>
+        <SliderRow label="Display size" cvKey="displaySize" min={22} max={56} />
+        <SliderRow label="Key size" cvKey="keySize" min={12} max={28} />
+        <SliderRow label="Label weight" cvKey="labelWeight" min={300} max={800} step={100} />
+
+        <div className="ck-eyebrow">Shape & density</div>
+        <div className="ck-row">
+          <label>Density</label>
+          <SegControl prop="density" options={[['compact','Compact'],['cozy','Cozy'],['roomy','Roomy']]} />
+        </div>
+        <SliderRow label="Outer radius" cvKey="outerRadius" min={0} max={40} />
+        <SliderRow label="Key radius" cvKey="keyRadius" min={0} max={40} />
+        <div className="ck-row">
+          <label>Shadow</label>
+          <SegControl prop="shadow" options={[['none','None'],['soft','Soft'],['deep','Deep'],['hard','Hard']]} />
+        </div>
+
+        <div className="ck-eyebrow">Field style</div>
+        <DualRow prop="fieldstyle" options={[['filled','Filled box'],['underline','Underline'],['pill','Pill'],['paper','Dashed paper']]} />
+        <div className="ck-row" style={{ marginTop:'10px' }}>
+          <label>Result BG (keypad)</label>
+          <SegControl prop="displaybg" options={[['default','Match'],['contrast','Contrast'],['accent','Accent']]} />
+        </div>
+
+        <div className="ck-eyebrow">Key style</div>
+        <DualRow prop="keystyle" options={[['soft','Soft'],['ghost','Ghost'],['hard','Hard'],['round','Round'],['brick','Brick']]} />
+
+        <div className="ck-eyebrow">Chrome</div>
+        <div className="ck-row"><label>Header</label><Toggle prop="header" /></div>
+        <div className="ck-row"><label>Row labels</label><Toggle prop="labels" /></div>
+        <div className="ck-row"><label>Unit badges</label><Toggle prop="units" /></div>
+        <div className="ck-row"><label>Row actions (···)</label><Toggle prop="actions" /></div>
+        <div className="ck-row"><label>Footer line</label><Toggle prop="foot" /></div>
+        <div className="ck-row"><label>Title emoji</label><Toggle prop="emoji" /></div>
+
+        <div className="ck-eyebrow">Copy</div>
+        <div className="ck-field-group">
+          <label style={{ fontSize:'12px', color:'#3a352e' }}>Title</label>
+          <input type="text" value={copy.title} onChange={e => setCopy(p => ({ ...p, title: e.target.value }))} />
+        </div>
+        <div className="ck-field-group">
+          <label style={{ fontSize:'12px', color:'#3a352e' }}>Meta line</label>
+          <input type="text" value={copy.meta} onChange={e => setCopy(p => ({ ...p, meta: e.target.value }))} />
+        </div>
+        <div className="ck-field-group">
+          <label style={{ fontSize:'12px', color:'#3a352e' }}>Footer (left / right)</label>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px' }}>
+            <input type="text" value={copy.footLeft} onChange={e => setCopy(p => ({ ...p, footLeft: e.target.value }))} />
+            <input type="text" value={copy.footRight} onChange={e => setCopy(p => ({ ...p, footRight: e.target.value }))} />
+          </div>
+        </div>
+
+        <div className="ck-eyebrow">Numbers</div>
+        <div className="ck-row">
+          <label>Cost</label>
+          <input type="range" className="ck-range" min={0} max={500} value={nums.cost} step={0.01}
+            onChange={e => setNums(p => ({ ...p, cost: parseFloat(e.target.value) }))} />
+          <span className="ck-bignum">{nums.cost.toFixed(2)}</span>
+        </div>
+        <div className="ck-row">
+          <label>Margin %</label>
+          <input type="range" className="ck-range" min={0} max={90} value={nums.margin} step={1}
+            onChange={e => setNums(p => ({ ...p, margin: parseInt(e.target.value) }))} />
+          <span className="ck-bignum">{nums.margin}</span>
+        </div>
+        <div className="ck-row">
+          <label>Currency</label>
+          <div className="ck-seg">
+            {['USD','EUR','GBP','JPY','CAD'].map(c => (
+              <button key={c} aria-pressed={nums.currency === c ? 'true' : 'false'}
+                onClick={() => setNums(p => ({ ...p, currency: c }))}>{c}</button>
+            ))}
+          </div>
+        </div>
+
+        <div className="ck-credit">
+          <span>CCK · 0.3</span>
+          <span>built live</span>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
 function LogoutButton() {
   const signout = () => signOut(auth);
   return (
@@ -2100,6 +2521,7 @@ function App() {
         <Route path="/" element={<Protected><HomePage /></Protected>} />
         <Route path="/margin" element={<Protected><PageShell><div className="max-w-5xl mx-auto"><MarginCalculator /></div></PageShell></Protected>} />
         <Route path="/pricing" element={<Protected><PageShell><div className="max-w-5xl mx-auto"><PricingCalculator /></div></PageShell></Protected>} />
+        <Route path="/kit" element={<Protected><CalculatorKit /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
